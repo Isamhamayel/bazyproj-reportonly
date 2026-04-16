@@ -25,10 +25,9 @@ const getSession = () => {
 // Base API caller with authentication
 const apiCall = async (endpoint: string, options: RequestInit = {}) => {
   const session = getSession();
-  
-  if (!session) {
-    // No session - this is expected when not logged in, use mock data silently
-    console.debug('No session found, using mock data');
+
+  if (!session || !session.token || !session.serverUrl) {
+    console.debug('No valid session found, using mock data');
     return null;
   }
 
@@ -36,28 +35,24 @@ const apiCall = async (endpoint: string, options: RequestInit = {}) => {
     endpoint,
     serverUrl: session.serverUrl,
     fullUrl: `${session.serverUrl}${endpoint}`,
-    hasCredentials: !!session.credentials
+    hasToken: !!session.token
   });
 
   const headers = new Headers(options.headers);
-  headers.set('Authorization', `Basic ${session.credentials}`);
-  
-  // Only set Content-Type for requests with body
+
+  headers.set('Authorization', `Bearer ${session.token}`);
+  headers.set('Accept', 'application/json');
+
   if (options.method && ['POST', 'PUT', 'PATCH'].includes(options.method)) {
     if (!headers.has('Content-Type')) {
       headers.set('Content-Type', 'application/json');
     }
   }
-  // Set Accept header to indicate we want JSON response
-  headers.set('Accept', 'application/json');
 
   try {
     const response = await fetch(`${session.serverUrl}${endpoint}`, {
       ...options,
       headers,
-      // Add credentials to maintain session cookies
-      credentials: 'include',
-      // Add mode to handle CORS
       mode: 'cors',
     });
 
@@ -70,49 +65,39 @@ const apiCall = async (endpoint: string, options: RequestInit = {}) => {
 
     if (!response.ok) {
       if (response.status === 401) {
-        // Session expired, clear it
         console.warn('⚠️ Session expired (401)');
         localStorage.removeItem('traccar_session');
-        if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-          window.location.href = '/login';
-        }
         throw new Error('Session expired');
       }
-      // Log detailed error information
+
       console.warn(`⚠️ API Error on ${endpoint}: ${response.status} ${response.statusText}`);
-      
-      // Don't throw for 400 errors, just return null to fallback to mock data
+
       if (response.status === 400) {
         console.debug(`Bad Request on ${endpoint}, falling back to mock data`);
         return null;
       }
-      
+
       throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
 
-    // Handle empty responses (like DELETE)
     const text = await response.text();
     return text ? JSON.parse(text) : null;
   } catch (error) {
-    // Network errors or fetch failures - use mock data as fallback
     if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
       console.debug(`Network error on ${endpoint}, using mock data`);
     } else {
       console.warn(`⚠️ API call failed on ${endpoint}:`, error);
     }
-    // Don't throw - let the caller handle null response and fallback to mock data
+
     return null;
   }
 };
 
-
-
 // Check if we should use real API or mock data
 const shouldUseMockData = () => {
   const session = getSession();
-  return !session; // Use mock data if no session
+  return !session || !session.token || !session.serverUrl;
 };
-
 // Unified API that switches between real and mock
 export const api = {
   // Get all devices
