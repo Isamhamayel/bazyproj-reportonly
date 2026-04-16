@@ -314,18 +314,6 @@ getTrips: async (deviceIds?: number[], from?: string, to?: string) => {
   return result || mockApi.getTrips(deviceIds[0]);
 },
 
-  // Get events
-if (!deviceIds || deviceIds.length === 0) {
-  const devices = await apiCall('/api/devices');
-
-  const tripsPromises = devices.map((device: any) =>
-    apiCall(`/api/reports/trips?deviceId=${device.id}&from=${from}&to=${to}`)
-      .catch(() => [])
-  );
-
-  const allTrips = await Promise.all(tripsPromises);
-  return allTrips.flat();
-},
   // Get summary statistics
   getSummary: async (deviceId?: number, from?: string, to?: string) => {
     if (shouldUseMockData()) {
