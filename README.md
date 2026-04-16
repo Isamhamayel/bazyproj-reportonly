@@ -1,5 +1,5 @@
 # BazyGo Reports Only
-
+ 
 This is a standalone version of the Reports page extracted from the original Figma-generated React/Vite project.
 
 ## What was changed
