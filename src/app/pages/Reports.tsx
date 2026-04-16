@@ -55,6 +55,27 @@ import { api } from "../services/api";
 import { Trip, Event, Device, Position } from "../services/mockTraccarApi";
 import * as XLSX from 'xlsx';
 
+import { useEffect } from "react";
+
+const Reports = () => {
+
+  // ✅ PUT IT HERE (inside component, before return)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+
+    if (token) {
+      const session = {
+        token,
+      };
+
+      localStorage.setItem("traccar_session", JSON.stringify(session));
+
+      // optional: remove token from URL after saving it
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
 declare global {
   interface Window {
     L?: any;
