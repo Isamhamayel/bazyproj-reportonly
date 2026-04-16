@@ -250,51 +250,16 @@ getTrips: async (deviceIds?: number[], from?: string, to?: string) => {
 },
 
   // Get events
-  getEvents: async (deviceIds?: number[], from?: string, to?: string, types?: string[]) => {
-  if (shouldUseMockData()) {
-    return mockApi.getEvents(deviceIds?.[0]);
-  }
-
-  if (!from || !to) {
-    const toDate = new Date();
-    const fromDate = new Date();
-    fromDate.setDate(fromDate.getDate() - 7);
-    from = formatDateForTraccar(fromDate);
-    to = formatDateForTraccar(toDate);
-  }
-
-  const safeFrom = encodeURIComponent(from);
-  const safeTo = encodeURIComponent(to);
-
-  const typeQuery =
-    types && types.length > 0
-      ? '&' + types.map((t) => `type=${encodeURIComponent(t)}`).join('&')
-      : '';
-
-  // load devices once to build deviceId -> deviceName map
+if (!deviceIds || deviceIds.length === 0) {
   const devices = await apiCall('/api/devices');
-  const deviceMap = new Map<number, string>(
-    (devices || []).map((d: any) => [Number(d.id), d.name])
+
+  const tripsPromises = devices.map((device: any) =>
+    apiCall(`/api/reports/trips?deviceId=${device.id}&from=${from}&to=${to}`)
+      .catch(() => [])
   );
 
-  let result;
-
-  if (!deviceIds || deviceIds.length === 0) {
-    result = await apiCall(`/api/reports/events?from=${safeFrom}&to=${safeTo}${typeQuery}`);
-  } else {
-    const deviceQuery = deviceIds.map((id) => `deviceId=${id}`).join('&');
-    result = await apiCall(`/api/reports/events?${deviceQuery}&from=${safeFrom}&to=${safeTo}${typeQuery}`);
-  }
-
-  const events = result || mockApi.getEvents(deviceIds?.[0]);
-
-  return (events || []).map((event: any) => ({
-    ...event,
-    deviceName:
-      event.deviceName ||
-      deviceMap.get(Number(event.deviceId)) ||
-      `Device ${event.deviceId}`,
-  }));
+  const allTrips = await Promise.all(tripsPromises);
+  return allTrips.flat();
 },
   // Get summary statistics
   getSummary: async (deviceId?: number, from?: string, to?: string) => {
