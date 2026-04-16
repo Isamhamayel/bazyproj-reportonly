@@ -8,7 +8,7 @@ import {
   User,
   Gauge,
   MapPin,
-  Clock,
+  Clock, 
   Activity,
   Key,
   Calendar,
