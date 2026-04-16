@@ -210,6 +210,71 @@ export const api = {
     return result ? result[0] : null;
   },
 
+  getEvents: async (deviceIds?: number[], from?: string, to?: string, types?: string[]) => {
+  if (shouldUseMockData()) {
+    return mockApi.getEvents(deviceIds?.[0]);
+  }
+
+  if (!from || !to) {
+    const toDate = new Date();
+    const fromDate = new Date();
+    fromDate.setDate(fromDate.getDate() - 7);
+    from = formatDateForTraccar(fromDate);
+    to = formatDateForTraccar(toDate);
+  }
+
+  const safeFrom = encodeURIComponent(from);
+  const safeTo = encodeURIComponent(to);
+
+  const typeQuery =
+    types && types.length > 0
+      ? '&' + types.map((t) => `type=${encodeURIComponent(t)}`).join('&')
+      : '';
+
+  const devices = await apiCall('/api/devices');
+  const deviceMap = new Map<number, string>(
+    (devices || []).map((d: any) => [Number(d.id), d.name])
+  );
+
+  let events: any[] = [];
+
+  if (!deviceIds || deviceIds.length === 0) {
+    if (!devices || devices.length === 0) {
+      return mockApi.getEvents(undefined);
+    }
+
+    const eventsPromises = devices.map((device: any) =>
+      apiCall(`/api/reports/events?deviceId=${device.id}&from=${safeFrom}&to=${safeTo}${typeQuery}`)
+        .then((res) => Array.isArray(res) ? res : [])
+        .catch(() => [])
+    );
+
+    const allEvents = await Promise.all(eventsPromises);
+    events = allEvents.flat();
+  } else {
+    const eventsPromises = deviceIds.map((id) =>
+      apiCall(`/api/reports/events?deviceId=${id}&from=${safeFrom}&to=${safeTo}${typeQuery}`)
+        .then((res) => Array.isArray(res) ? res : [])
+        .catch(() => [])
+    );
+
+    const selectedEvents = await Promise.all(eventsPromises);
+    events = selectedEvents.flat();
+  }
+
+  if (!events.length) {
+    events = mockApi.getEvents(deviceIds?.[0]);
+  }
+
+  return events.map((event: any) => ({
+    ...event,
+    deviceName:
+      event.deviceName ||
+      deviceMap.get(Number(event.deviceId)) ||
+      `Device ${event.deviceId}`,
+  }));
+},
+
   // Get trips for a device
 // Get trips for one or more devices
 getTrips: async (deviceIds?: number[], from?: string, to?: string) => {
