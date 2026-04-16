@@ -660,6 +660,8 @@ export function Reports() {
   useEffect(() => {
   const params = new URLSearchParams(window.location.search);
   const token = params.get("token");
+  const country = params.get("country");
+  const serverUrl = "https://go.bazytrack."+country;
 
   if (!token) return;
 
@@ -677,6 +679,7 @@ export function Reports() {
     JSON.stringify({
       ...existingSession,
       token,
+      serverUrl,
     })
   );
 
