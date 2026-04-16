@@ -55,27 +55,6 @@ import { api } from "../services/api";
 import { Trip, Event, Device, Position } from "../services/mockTraccarApi";
 import * as XLSX from 'xlsx';
 
-import { useEffect } from "react";
-
-const Reports = () => {
-
-  // ✅ PUT IT HERE (inside component, before return)
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
-
-    if (token) {
-      const session = {
-        token,
-      };
-
-      localStorage.setItem("traccar_session", JSON.stringify(session));
-
-      // optional: remove token from URL after saving it
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
-
 declare global {
   interface Window {
     L?: any;
@@ -677,7 +656,33 @@ const getEventIcon = (eventType: string, alarm?: string) => {
 };
 
 export function Reports() {
-  const [devices, setDevices] = useState<Device[]>([]);
+  
+  const [devices,useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
+
+  if (!token) return;
+
+  let existingSession = {};
+
+  try {
+    const stored = localStorage.getItem("traccar_session");
+    existingSession = stored ? JSON.parse(stored) : {};
+  } catch {
+    existingSession = {};
+  }
+
+  localStorage.setItem(
+    "traccar_session",
+    JSON.stringify({
+      ...existingSession,
+      token,
+    })
+  );
+
+  window.history.replaceState({}, document.title, window.location.pathname);
+}, []);
+  setDevices] = useState<Device[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [allEvents, setAllEvents] = useState<ExtendedEvent[]>([]);
   const [mapLayer, setMapLayer] = useState<"osm" | "esri">("osm");
