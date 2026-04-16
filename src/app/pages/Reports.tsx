@@ -656,8 +656,8 @@ const getEventIcon = (eventType: string, alarm?: string) => {
 };
 
 export function Reports() {
-  
-  const [devices,useEffect(() => {
+
+  useEffect(() => {
   const params = new URLSearchParams(window.location.search);
   const token = params.get("token");
 
@@ -682,7 +682,8 @@ export function Reports() {
 
   window.history.replaceState({}, document.title, window.location.pathname);
 }, []);
-  setDevices] = useState<Device[]>([]);
+  
+  const [devices,setDevices] = useState<Device[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [allEvents, setAllEvents] = useState<ExtendedEvent[]>([]);
   const [mapLayer, setMapLayer] = useState<"osm" | "esri">("osm");
