@@ -725,6 +725,10 @@ export function Reports() {
   const [isPlayingTrip, setIsPlayingTrip] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState('1');
   const vehicleDropdownRef = useRef<HTMLDivElement | null>(null);
+  const [selectedVisitGeofences, setSelectedVisitGeofences] = useState<string[]>([]);
+  const [visitGeofenceSearch, setVisitGeofenceSearch] = useState("");
+  const [visitGeofenceDropdownOpen, setVisitGeofenceDropdownOpen] = useState(false);
+  const visitGeofenceDropdownRef = useRef<HTMLDivElement | null>(null);
 
   
 
@@ -753,6 +757,20 @@ export function Reports() {
     const handleClickOutside = (event: MouseEvent) => {
       if (vehicleDropdownRef.current && !vehicleDropdownRef.current.contains(event.target as Node)) {
         setVehicleDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        visitGeofenceDropdownRef.current &&
+        !visitGeofenceDropdownRef.current.contains(event.target as Node)
+      ) {
+        setVisitGeofenceDropdownOpen(false);
       }
     };
 
@@ -1280,15 +1298,21 @@ useEffect(() => {
   });
 
   // Apply dynamic filters to visits
-  const filteredVisits = visits.filter(visit => {
+  const filteredVisits = visits.filter((visit) => {
+    const geofenceMatches =
+      selectedVisitGeofences.length === 0 ||
+      selectedVisitGeofences.includes(visit.geofenceName);
+
+    if (!geofenceMatches) return false;
+
     if (visitDynamicFilters.length === 0) return true;
-    
-    return visitDynamicFilters.every(filter => {
+
+    return visitDynamicFilters.every((filter) => {
       let value: string | number = '';
-      
+
       const enterTime = convertToUTC3(visit.enterTime);
       const exitTime = visit.exitTime ? convertToUTC3(visit.exitTime) : 'Still inside';
-      
+
       switch (filter.column) {
         case 'device':
           value = visit.deviceName.toLowerCase();
@@ -1314,7 +1338,7 @@ useEffect(() => {
         default:
           return true;
       }
-      
+
       if (typeof value === 'string') {
         return value.includes(filter.value.toLowerCase());
       }
@@ -1435,6 +1459,33 @@ useEffect(() => {
     return devices.filter((device) => device.name.toLowerCase().includes(q));
   }, [devices, vehicleSearch]);
 
+  const visitGeofenceOptions = useMemo(() => {
+    return Array.from(new Set(visits.map((v) => v.geofenceName).filter(Boolean))).sort();
+  }, [visits]);
+
+  const filteredVisitGeofenceOptions = useMemo(() => {
+    const q = visitGeofenceSearch.trim().toLowerCase();
+    if (!q) return visitGeofenceOptions;
+    return visitGeofenceOptions.filter((name) => name.toLowerCase().includes(q));
+  }, [visitGeofenceOptions, visitGeofenceSearch]);
+
+  const selectedVisitGeofenceSummary =
+    selectedVisitGeofences.length === 0
+      ? "All Geofences"
+      : selectedVisitGeofences.length === 1
+        ? selectedVisitGeofences[0]
+        : `${selectedVisitGeofences.length} Geofences selected`;
+
+  const toggleSelectedVisitGeofence = (name: string) => {
+    setSelectedVisitGeofences((prev) =>
+      prev.includes(name) ? prev.filter((g) => g !== name) : [...prev, name]
+    );
+  };
+
+  const clearSelectedVisitGeofences = () => {
+    setSelectedVisitGeofences([]);
+  };
+
   const selectedDevicesCount = selectedDevices.length;
 
   const selectedVehicleSummary =
@@ -1484,56 +1535,6 @@ useEffect(() => {
           {/*<p className="text-gray-600">Generate and analyze fleet reports</p>*/}
         </div>
         
-      </div>
-            {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card key="top-card-distance">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total Distance</p>
-                <p className="text-2xl font-semibold">{totalDistance.toFixed(1)} km</p>
-                <p className="text-xs text-gray-500 mt-2">{selectedVehicleSummary}</p>
-                <p className="text-xs text-gray-500">{selectedDateLabel}</p>
-              </div>
-              <div className="bg-blue-500 p-3 rounded-lg">
-                <MapPin className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card key="top-card-duration">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total Duration</p>
-                <p className="text-2xl font-semibold">{formatDuration(totalDuration)}</p>
-                <p className="text-xs text-gray-500 mt-2">{selectedVehicleSummary}</p>
-                <p className="text-xs text-gray-500">{selectedDateLabel}</p>
-              </div>
-              <div className="bg-purple-500 p-3 rounded-lg">
-                <Clock className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card key="top-card-speed">
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Max Speed</p>
-                <p className="text-2xl font-semibold">{convertSpeed(maxSpeed).toFixed(1)} km/h</p>
-                <p className="text-xs text-gray-500 mt-2">{selectedVehicleSummary}</p>
-                <p className="text-xs text-gray-500">{selectedDateLabel}</p>
-              </div>
-              <div className="bg-green-500 p-3 rounded-lg">
-                <TrendingUp className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
 
@@ -1770,6 +1771,57 @@ useEffect(() => {
               )}
             </CardContent>
           </Card>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card key="trip-card-distance">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Total Distance</p>
+                    <p className="text-2xl font-semibold">{totalDistance.toFixed(1)} km</p>
+                    <p className="text-xs text-gray-500 mt-2">{selectedVehicleSummary}</p>
+                    <p className="text-xs text-gray-500">{selectedDateLabel}</p>
+                  </div>
+                  <div className="bg-blue-500 p-3 rounded-lg">
+                    <MapPin className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card key="trip-card-duration">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Total Duration</p>
+                    <p className="text-2xl font-semibold">{formatDuration(totalDuration)}</p>
+                    <p className="text-xs text-gray-500 mt-2">{selectedVehicleSummary}</p>
+                    <p className="text-xs text-gray-500">{selectedDateLabel}</p>
+                  </div>
+                  <div className="bg-purple-500 p-3 rounded-lg">
+                    <Clock className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card key="trip-card-speed">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Max Speed</p>
+                    <p className="text-2xl font-semibold">{convertSpeed(maxSpeed).toFixed(1)} km/h</p>
+                    <p className="text-xs text-gray-500 mt-2">{selectedVehicleSummary}</p>
+                    <p className="text-xs text-gray-500">{selectedDateLabel}</p>
+                  </div>
+                  <div className="bg-green-500 p-3 rounded-lg">
+                    <TrendingUp className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
         </TabsContent>
 
         <TabsContent value="events" className="space-y-4">
@@ -1894,29 +1946,100 @@ useEffect(() => {
 
         <TabsContent value="visits" className="space-y-4">
           <Card>
-            <CardHeader className="flex flex-row items-start justify-between">
-  <CardTitle>Geofence Visits</CardTitle>
+            <CardHeader className="space-y-4">
+  <div className="flex flex-row items-start justify-between">
+    <CardTitle>Geofence Visits</CardTitle>
 
-  <div className="flex items-center gap-2">
-    <Button onClick={loadData} disabled={loading} variant="outline" size="sm">
-      <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-      {loading ? 'Loading...' : 'Refresh'}
-    </Button>
+    <div className="flex items-center gap-2">
+      <Button onClick={loadData} disabled={loading} variant="outline" size="sm">
+        <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+        {loading ? 'Loading...' : 'Refresh'}
+      </Button>
 
-    <Button onClick={() => setShowVisitFilters(true)} variant="outline" size="sm">
-      <Filter className="w-4 h-4 mr-2" />
-      Filters
-      {visitDynamicFilters.length > 0 && (
-        <span className="ml-2 bg-blue-500 text-white px-2 py-0.5 rounded-full text-xs">
-          {visitDynamicFilters.length}
-        </span>
+      <Button onClick={() => setShowVisitFilters(true)} variant="outline" size="sm">
+        <Filter className="w-4 h-4 mr-2" />
+        Filters
+        {visitDynamicFilters.length > 0 && (
+          <span className="ml-2 bg-blue-500 text-white px-2 py-0.5 rounded-full text-xs">
+            {visitDynamicFilters.length}
+          </span>
+        )}
+      </Button>
+
+      <Button onClick={exportVisitsReport} variant="outline" size="sm">
+        <Download className="w-4 h-4 mr-2" />
+        Export
+      </Button>
+    </div>
+  </div>
+
+  <div ref={visitGeofenceDropdownRef} className="relative w-full sm:w-[320px]">
+    <button
+      type="button"
+      onClick={() => setVisitGeofenceDropdownOpen((prev) => !prev)}
+      className="w-full rounded-md border bg-white px-3 py-2 text-left min-h-[40px]"
+    >
+      <div className="text-sm font-medium">{selectedVisitGeofenceSummary}</div>
+      {selectedVisitGeofences.length > 0 && (
+        <div className="mt-1 text-xs text-gray-500 line-clamp-2">
+          {selectedVisitGeofences.join(", ")}
+        </div>
       )}
-    </Button>
+    </button>
 
-    <Button onClick={exportVisitsReport} variant="outline" size="sm">
-      <Download className="w-4 h-4 mr-2" />
-      Export
-    </Button>
+    {visitGeofenceDropdownOpen && (
+      <div className="absolute z-50 mt-1 w-full rounded-md border bg-white p-2 shadow-lg">
+        <Input
+          value={visitGeofenceSearch}
+          onChange={(e) => setVisitGeofenceSearch(e.target.value)}
+          placeholder="Search geofence..."
+          className="mb-2"
+        />
+
+        <div className="mb-2 flex items-center justify-between border-b pb-2">
+          <button
+            type="button"
+            onClick={clearSelectedVisitGeofences}
+            className="text-sm text-blue-600 hover:underline"
+          >
+            All Geofences
+          </button>
+
+          {selectedVisitGeofences.length > 0 && (
+            <button
+              type="button"
+              onClick={clearSelectedVisitGeofences}
+              className="text-xs text-gray-500 hover:text-gray-700"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+
+        <div className="max-h-64 space-y-1 overflow-auto">
+          {filteredVisitGeofenceOptions.map((name) => {
+            const checked = selectedVisitGeofences.includes(name);
+
+            return (
+              <label
+                key={name}
+                className="flex cursor-pointer items-center gap-2 rounded px-2 py-2 hover:bg-gray-50"
+              >
+                <Checkbox
+                  checked={checked}
+                  onCheckedChange={() => toggleSelectedVisitGeofence(name)}
+                />
+                <span className="text-sm">{name}</span>
+              </label>
+            );
+          })}
+
+          {filteredVisitGeofenceOptions.length === 0 && (
+            <div className="px-2 py-3 text-sm text-gray-500">No geofences found.</div>
+          )}
+        </div>
+      </div>
+    )}
   </div>
 </CardHeader>
             <CardContent>
