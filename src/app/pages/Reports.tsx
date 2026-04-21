@@ -691,6 +691,7 @@ export function Reports() {
   const [allEvents, setAllEvents] = useState<ExtendedEvent[]>([]);
   const [mapLayer, setMapLayer] = useState<"osm" | "esri">("osm");
   const [visits, setVisits] = useState<Visit[]>([]);
+  const [geofences, setGeofences] = useState<Array<{ id: number; name: string }>>([]);
   const [geofenceMap, setGeofenceMap] = useState<Record<number, string>>({});
   const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
   const [vehicleSearch, setVehicleSearch] = useState<string>("");
@@ -725,7 +726,7 @@ export function Reports() {
   const [isPlayingTrip, setIsPlayingTrip] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState('1');
   const vehicleDropdownRef = useRef<HTMLDivElement | null>(null);
-  const [selectedVisitGeofences, setSelectedVisitGeofences] = useState<string[]>([]);
+  const [selectedVisitGeofences, setSelectedVisitGeofences] = useState<string[]>([]); // stores geofence ids as strings
   const [visitGeofenceSearch, setVisitGeofenceSearch] = useState("");
   const [visitGeofenceDropdownOpen, setVisitGeofenceDropdownOpen] = useState(false);
   const visitGeofenceDropdownRef = useRef<HTMLDivElement | null>(null);
@@ -947,18 +948,24 @@ export function Reports() {
 
   const loadGeofences = async () => {
   try {
-    const geofences = await api.getGeofences();
-    const map: Record<number, string> = {};
+    const geofenceList = await api.getGeofences();
+    const normalizedGeofences = (geofenceList || [])
+      .filter((g: any) => g?.id != null)
+      .map((g: any) => ({
+        id: Number(g.id),
+        name: g.name || `Geofence ${g.id}`,
+      }));
 
-    geofences.forEach((g: any) => {
-      if (g?.id != null) {
-        map[Number(g.id)] = g.name || `Geofence ${g.id}`;
-      }
+    const map: Record<number, string> = {};
+    normalizedGeofences.forEach((g) => {
+      map[g.id] = g.name;
     });
 
+    setGeofences(normalizedGeofences);
     setGeofenceMap(map);
   } catch (error) {
     console.error("Failed to load geofences:", error);
+    setGeofences([]);
     setGeofenceMap({});
   }
 };
@@ -1118,29 +1125,23 @@ useEffect(() => {
         // Events already contain address data - no need to fetch positions separately
         setAllEvents(enrichedEvents);
      } else if (activeTab === 'visits') {
-  console.log('Loading events data for visits...');
+        console.log('Loading geofence visits report from backend...');
 
-  let currentGeofenceMap = geofenceMap;
+        const geofenceIds =
+          selectedVisitGeofences.length === 0
+            ? undefined
+            : selectedVisitGeofences
+                .map((id) => parseInt(id, 10))
+                .filter((id) => !Number.isNaN(id));
 
-  if (Object.keys(currentGeofenceMap).length === 0) {
-    const geofences = await api.getGeofences();
-    currentGeofenceMap = {};
+        const visitsData = await (api as any).getGeofenceVisitsReport({
+          deviceIds,
+          geofenceIds,
+          from,
+          to,
+        });
 
-    geofences.forEach((g: any) => {
-      if (g?.id != null) {
-        currentGeofenceMap[Number(g.id)] = g.name || `Geofence ${g.id}`;
-      }
-    });
-
-    setGeofenceMap(currentGeofenceMap);
-  }
-
-  const eventsData = await (api as any).getEvents(deviceIds, from, to, ['geofenceEnter', 'geofenceExit']);
-  const enrichedEvents = await enrichEventsWithPositions(eventsData);
-  setAllEvents(enrichedEvents);
-
-  const visitsData = processVisitsFromEvents(enrichedEvents, currentGeofenceMap);
-  setVisits(visitsData);
+        setVisits(Array.isArray(visitsData) ? visitsData : []);
 } else if (activeTab === 'summary') {
         console.log('Loading all data for summary...');
         const [tripsData, eventsData] = await Promise.all([
@@ -1299,12 +1300,6 @@ useEffect(() => {
 
   // Apply dynamic filters to visits
   const filteredVisits = visits.filter((visit) => {
-    const geofenceMatches =
-      selectedVisitGeofences.length === 0 ||
-      selectedVisitGeofences.includes(visit.geofenceName);
-
-    if (!geofenceMatches) return false;
-
     if (visitDynamicFilters.length === 0) return true;
 
     return visitDynamicFilters.every((filter) => {
@@ -1460,25 +1455,23 @@ useEffect(() => {
   }, [devices, vehicleSearch]);
 
   const visitGeofenceOptions = useMemo(() => {
-    return Array.from(new Set(visits.map((v) => v.geofenceName).filter(Boolean))).sort();
-  }, [visits]);
-
-  const filteredVisitGeofenceOptions = useMemo(() => {
     const q = visitGeofenceSearch.trim().toLowerCase();
-    if (!q) return visitGeofenceOptions;
-    return visitGeofenceOptions.filter((name) => name.toLowerCase().includes(q));
-  }, [visitGeofenceOptions, visitGeofenceSearch]);
+    const source = geofences;
+
+    if (!q) return source;
+    return source.filter((g) => g.name.toLowerCase().includes(q));
+  }, [geofences, visitGeofenceSearch]);
 
   const selectedVisitGeofenceSummary =
     selectedVisitGeofences.length === 0
       ? "All Geofences"
       : selectedVisitGeofences.length === 1
-        ? selectedVisitGeofences[0]
+        ? geofences.find((g) => g.id.toString() === selectedVisitGeofences[0])?.name || "1 Geofence selected"
         : `${selectedVisitGeofences.length} Geofences selected`;
 
-  const toggleSelectedVisitGeofence = (name: string) => {
+  const toggleSelectedVisitGeofence = (id: string) => {
     setSelectedVisitGeofences((prev) =>
-      prev.includes(name) ? prev.filter((g) => g !== name) : [...prev, name]
+      prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]
     );
   };
 
@@ -1982,7 +1975,7 @@ useEffect(() => {
       <div className="text-sm font-medium">{selectedVisitGeofenceSummary}</div>
       {selectedVisitGeofences.length > 0 && (
         <div className="mt-1 text-xs text-gray-500 line-clamp-2">
-          {selectedVisitGeofences.join(", ")}
+          {selectedVisitGeofences.map((id) => geofences.find((g) => g.id.toString() === id)?.name || id).join(", ")}
         </div>
       )}
     </button>
@@ -2017,24 +2010,24 @@ useEffect(() => {
         </div>
 
         <div className="max-h-64 space-y-1 overflow-auto">
-          {filteredVisitGeofenceOptions.map((name) => {
-            const checked = selectedVisitGeofences.includes(name);
+          {visitGeofenceOptions.map((geofence) => {
+            const checked = selectedVisitGeofences.includes(geofence.id.toString());
 
             return (
               <label
-                key={name}
+                key={geofence.id}
                 className="flex cursor-pointer items-center gap-2 rounded px-2 py-2 hover:bg-gray-50"
               >
                 <Checkbox
                   checked={checked}
-                  onCheckedChange={() => toggleSelectedVisitGeofence(name)}
+                  onCheckedChange={() => toggleSelectedVisitGeofence(geofence.id.toString())}
                 />
-                <span className="text-sm">{name}</span>
+                <span className="text-sm">{geofence.name}</span>
               </label>
             );
           })}
 
-          {filteredVisitGeofenceOptions.length === 0 && (
+          {visitGeofenceOptions.length === 0 && (
             <div className="px-2 py-3 text-sm text-gray-500">No geofences found.</div>
           )}
         </div>
