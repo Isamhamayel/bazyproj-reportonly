@@ -1505,6 +1505,22 @@ useEffect(() => {
     );
   };
 
+  const topGeofenceVisits = useMemo(() => {
+  if (!visits || visits.length === 0) return [];
+
+  const map = new Map<string, number>();
+
+  visits.forEach((v) => {
+    const name = v.geofenceName || "Unknown";
+    map.set(name, (map.get(name) || 0) + 1);
+  });
+
+  return Array.from(map.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+}, [visits]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -1924,6 +1940,22 @@ useEffect(() => {
         </TabsContent>
 
         <TabsContent value="visits" className="space-y-4">
+          {topGeofenceVisits.length > 0 && (
+  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+    {topGeofenceVisits.map((g, i) => (
+      <Card key={`geo-top-${i}`} className="p-3">
+        <div className="flex flex-col gap-1">
+          <div className="text-xs text-gray-500 truncate">
+            {g.name}
+          </div>
+          <div className="text-xl font-semibold text-blue-600">
+            {g.count}
+          </div>
+        </div>
+      </Card>
+    ))}
+  </div>
+)}
           <Card>
             <CardHeader className="space-y-4">
   <div className="flex flex-row items-start justify-between">
