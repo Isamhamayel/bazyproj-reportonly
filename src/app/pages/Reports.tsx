@@ -1411,9 +1411,7 @@ useEffect(() => {
       'Enter Time (UTC+3)': convertToUTC3(visit.enterTime),
       'Exit Time (UTC+3)': visit.exitTime ? convertToUTC3(visit.exitTime) : 'Still inside',
       'Duration': formatDuration(visit.duration),
-      'Enter Address': visit.enterAddress || '',
-      'Exit Address': visit.exitAddress || ''
-    }));
+  }));
 
     // Create worksheet and workbook
     const worksheet = XLSX.utils.json_to_sheet(data);
@@ -1422,13 +1420,12 @@ useEffect(() => {
 
     // Auto-size columns
     worksheet['!cols'] = [
-      { wch: 15 }, // Device
-      { wch: 20 }, // Geofence Name
-      { wch: 20 }, // Enter Time
-      { wch: 20 }, // Exit Time
-      { wch: 10 }, // Duration
-      { wch: 50 }, // Enter Address
-      { wch: 50 }  // Exit Address
+      { wch: 25 }, // Device
+      { wch: 50 }, // Geofence Name
+      { wch: 35 }, // Enter Time
+      { wch: 35 }, // Exit Time
+      { wch: 20 }, // Duration
+      
     ];
 
     // Export with proper UTF-8 encoding for Arabic
@@ -2044,8 +2041,6 @@ useEffect(() => {
                         <TableHead key="visits-h-enter">Enter Time (UTC+3)</TableHead>
                         <TableHead key="visits-h-exit">Exit Time (UTC+3)</TableHead>
                         <TableHead key="visits-h-duration">Duration</TableHead>
-                        <TableHead key="visits-h-enter-addr">Enter Address</TableHead>
-                        <TableHead key="visits-h-exit-addr">Exit Address</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
