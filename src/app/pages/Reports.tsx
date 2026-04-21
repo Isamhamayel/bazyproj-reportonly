@@ -595,9 +595,7 @@ interface Visit {
   enterTime: string;
   exitTime: string | null;
   duration: number;
-  enterAddress?: string;
-  exitAddress?: string;
-}
+  }
 
 // Extended Event with position data
 interface ExtendedEvent extends Event {
@@ -2061,16 +2059,7 @@ useEffect(() => {
                               : <span className="text-orange-600">Still inside</span>}
                           </TableCell>
                           <TableCell>{visit.duration > 0 ? formatDuration(visit.duration) : '-'}</TableCell>
-                          <TableCell className="max-w-xs">
-                            <div className="truncate text-sm text-gray-600">
-                              {visit.enterAddress || '-'}
-                            </div>
-                          </TableCell>
-                          <TableCell className="max-w-xs">
-                            <div className="truncate text-sm text-gray-600">
-                              {visit.exitAddress || '-'}
-                            </div>
-                          </TableCell>
+                          
                         </TableRow>
                       ))}
                     </TableBody>
