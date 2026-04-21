@@ -142,9 +142,7 @@ const buildVisitsFromEvents = (events: any[], geofenceMap: Record<number, string
       geofenceName,
       enterTime: enterEvent.eventTime,
       exitTime: exitEvent?.eventTime || null,
-      duration,
-      enterAddress: enterEvent.attributes?.address,
-      exitAddress: exitEvent?.attributes?.address,
+      duration
     });
   });
 
