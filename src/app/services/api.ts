@@ -98,6 +98,58 @@ const shouldUseMockData = () => {
   const session = getSession();
   return !session || !session.token || !session.serverUrl;
 };
+
+type GeofenceVisit = {
+  id: string;
+  deviceId: number;
+  deviceName: string;
+  geofenceId?: number;
+  geofenceName: string;
+  enterTime: string;
+  exitTime: string | null;
+  duration: number;
+  enterAddress?: string;
+  exitAddress?: string;
+};
+
+const buildVisitsFromEvents = (events: any[], geofenceMap: Record<number, string>): GeofenceVisit[] => {
+  const visits: GeofenceVisit[] = [];
+  const enterEvents = events.filter((e) => e.type === 'geofenceEnter');
+  const exitEvents = events.filter((e) => e.type === 'geofenceExit');
+
+  enterEvents.forEach((enterEvent) => {
+    const geofenceId = enterEvent.geofenceId != null ? Number(enterEvent.geofenceId) : undefined;
+    const geofenceName =
+      enterEvent.attributes?.geofenceName ||
+      (geofenceId != null ? geofenceMap[geofenceId] : undefined) ||
+      (geofenceId != null ? `Geofence ${geofenceId}` : 'Unknown Geofence');
+
+    const exitEvent = exitEvents.find((e) =>
+      Number(e.deviceId) === Number(enterEvent.deviceId) &&
+      Number(e.geofenceId) === Number(enterEvent.geofenceId) &&
+      new Date(e.eventTime).getTime() > new Date(enterEvent.eventTime).getTime()
+    );
+
+    const enterTime = new Date(enterEvent.eventTime);
+    const exitTime = exitEvent ? new Date(exitEvent.eventTime) : null;
+    const duration = exitTime ? exitTime.getTime() - enterTime.getTime() : 0;
+
+    visits.push({
+      id: `visit-${enterEvent.id}`,
+      deviceId: Number(enterEvent.deviceId),
+      deviceName: enterEvent.deviceName || `Device ${enterEvent.deviceId}`,
+      geofenceId,
+      geofenceName,
+      enterTime: enterEvent.eventTime,
+      exitTime: exitEvent?.eventTime || null,
+      duration,
+      enterAddress: enterEvent.attributes?.address,
+      exitAddress: exitEvent?.attributes?.address,
+    });
+  });
+
+  return visits.sort((a, b) => new Date(b.enterTime).getTime() - new Date(a.enterTime).getTime());
+};
 // Unified API that switches between real and mock
 export const api = {
   // Get all devices
@@ -418,6 +470,84 @@ getTrips: async (deviceIds?: number[], from?: string, to?: string) => {
     return hasData ? result : mockApi.getHistoricalData(days);
   },
 
+  // Get backend-processed geofence visits report
+  getGeofenceVisitsReport: async ({
+    deviceIds,
+    geofenceIds,
+    from,
+    to,
+  }: {
+    deviceIds?: number[];
+    geofenceIds?: number[];
+    from?: string;
+    to?: string;
+  }) => {
+    if (!from || !to) {
+      const toDate = new Date();
+      const fromDate = new Date();
+      fromDate.setDate(fromDate.getDate() - 7);
+      from = formatDateForTraccar(fromDate);
+      to = formatDateForTraccar(toDate);
+    }
+
+    if (shouldUseMockData()) {
+      const [events, geofences] = await Promise.all([
+        mockApi.getEvents(deviceIds?.[0]),
+        Promise.resolve([] as any[]),
+      ]);
+
+      const geofenceMap: Record<number, string> = {};
+      geofences.forEach((g: any) => {
+        if (g?.id != null) geofenceMap[Number(g.id)] = g.name || `Geofence ${g.id}`;
+      });
+
+      let visits = buildVisitsFromEvents(events, geofenceMap);
+
+      if (deviceIds?.length) {
+        visits = visits.filter((visit) => deviceIds.includes(Number(visit.deviceId)));
+      }
+
+      if (geofenceIds?.length) {
+        visits = visits.filter((visit) => visit.geofenceId != null && geofenceIds.includes(Number(visit.geofenceId)));
+      }
+
+      return visits;
+    }
+
+    const result = await apiCall('/api/reports/geofence-visits', {
+      method: 'POST',
+      body: JSON.stringify({
+        deviceIds,
+        geofenceIds,
+        from,
+        to,
+      }),
+    });
+
+    if (Array.isArray(result)) {
+      return result;
+    }
+
+    // fallback for environments where the backend endpoint is not ready yet
+    const [events, geofences] = await Promise.all([
+      api.getEvents(deviceIds, from, to, ['geofenceEnter', 'geofenceExit']),
+      api.getGeofences(),
+    ]);
+
+    const geofenceMap: Record<number, string> = {};
+    geofences.forEach((g: any) => {
+      if (g?.id != null) geofenceMap[Number(g.id)] = g.name || `Geofence ${g.id}`;
+    });
+
+    let visits = buildVisitsFromEvents(events, geofenceMap);
+
+    if (geofenceIds?.length) {
+      visits = visits.filter((visit) => visit.geofenceId != null && geofenceIds.includes(Number(visit.geofenceId)));
+    }
+
+    return visits;
+  },
+
   // Get geofences
   getGeofences: async () => {
     if (shouldUseMockData()) {
@@ -425,7 +555,7 @@ getTrips: async (deviceIds?: number[], from?: string, to?: string) => {
       return [];
     }
     const result = await apiCall('/api/geofences');
-    return result || [];
+    return Array.isArray(result) ? result.sort((a: any, b: any) => String(a?.name || '').localeCompare(String(b?.name || ''))) : [];
   },
 
   // Create geofence
