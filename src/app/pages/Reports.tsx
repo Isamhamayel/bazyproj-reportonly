@@ -877,8 +877,7 @@ export function Reports() {
     { key: 'enterTime', value: 'enterTime', label: 'Enter Time', type: 'text' },
     { key: 'exitTime', value: 'exitTime', label: 'Exit Time', type: 'text' },
     { key: 'duration', value: 'duration', label: 'Duration (minutes)', type: 'number' },
-    { key: 'enterAddress', value: 'enterAddress', label: 'Enter Address', type: 'text' },
-    { key: 'exitAddress', value: 'exitAddress', label: 'Exit Address', type: 'text' },
+
   ];
 
   // Add new filter
@@ -1184,8 +1183,7 @@ useEffect(() => {
     const exitTime = exitEvent ? new Date(exitEvent.eventTime) : null;
     const duration = exitTime ? exitTime.getTime() - enterTime.getTime() : 0;
 
-    const enterAddress = enterEvent.attributes?.address || enterEvent.position?.address;
-    const exitAddress = exitEvent?.attributes?.address || exitEvent?.position?.address;
+
 
     visits.push({
       id: `visit-${enterEvent.id}`,
@@ -1195,8 +1193,6 @@ useEffect(() => {
       enterTime: enterEvent.eventTime,
       exitTime: exitEvent?.eventTime || null,
       duration,
-      enterAddress,
-      exitAddress,
     });
   });
 
@@ -1324,12 +1320,7 @@ useEffect(() => {
         case 'duration':
           value = parseDurationToMinutes(formatDuration(visit.duration));
           return compareNumbers(value, filter.value, filter.operator);
-        case 'enterAddress':
-          value = (visit.enterAddress || '').toLowerCase();
-          break;
-        case 'exitAddress':
-          value = (visit.exitAddress || '').toLowerCase();
-          break;
+        
         default:
           return true;
       }
