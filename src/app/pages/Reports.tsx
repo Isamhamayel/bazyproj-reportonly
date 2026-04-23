@@ -728,6 +728,16 @@ export function Reports() {
   const [visitGeofenceSearch, setVisitGeofenceSearch] = useState("");
   const [visitGeofenceDropdownOpen, setVisitGeofenceDropdownOpen] = useState(false);
   const visitGeofenceDropdownRef = useRef<HTMLDivElement | null>(null);
+  type VisitSortColumn = 'device' | 'geofenceName' | 'enterTime' | 'exitTime' | 'duration';
+  type SortDirection = 'asc' | 'desc';
+  
+  const [visitSort, setVisitSort] = useState<{
+    column: VisitSortColumn;
+    direction: SortDirection;
+  }>({
+    column: 'enterTime',
+    direction: 'desc',
+  });
 
   
 
@@ -794,6 +804,22 @@ export function Reports() {
     setPlaybackIndex(0);
     setSelectedInfoIndex(0);
     setIsPlayingTrip(false);
+  };
+
+  const handleVisitSort = (column: VisitSortColumn) => {
+    setVisitSort((prev) => {
+      if (prev.column === column) {
+        return {
+          column,
+          direction: prev.direction === 'asc' ? 'desc' : 'asc',
+        };
+      }
+  
+      return {
+        column,
+        direction: 'asc',
+      };
+    });
   };
 
   const openTripMapDialog = async (trip: Trip) => {
@@ -1293,42 +1319,81 @@ useEffect(() => {
   });
 
   // Apply dynamic filters to visits
-  const filteredVisits = visits.filter((visit) => {
-    if (visitDynamicFilters.length === 0) return true;
+const filteredVisits = visits.filter((visit) => {
+  if (visitDynamicFilters.length === 0) return true;
 
-    return visitDynamicFilters.every((filter) => {
-      let value: string | number = '';
+  return visitDynamicFilters.every((filter) => {
+    let value: string | number = '';
 
-      const enterTime = convertToUTC3(visit.enterTime);
-      const exitTime = visit.exitTime ? convertToUTC3(visit.exitTime) : 'Still inside';
+    const enterTime = convertToUTC3(visit.enterTime);
+    const exitTime = visit.exitTime ? convertToUTC3(visit.exitTime) : 'Still inside';
 
-      switch (filter.column) {
-        case 'device':
-          value = visit.deviceName.toLowerCase();
-          break;
-        case 'geofenceName':
-          value = visit.geofenceName.toLowerCase();
-          break;
-        case 'enterTime':
-          value = enterTime.toLowerCase();
-          break;
-        case 'exitTime':
-          value = exitTime.toLowerCase();
-          break;
-        case 'duration':
-          value = parseDurationToMinutes(formatDuration(visit.duration));
-          return compareNumbers(value, filter.value, filter.operator);
-        
-        default:
-          return true;
-      }
+    switch (filter.column) {
+      case 'device':
+        value = visit.deviceName.toLowerCase();
+        break;
+      case 'geofenceName':
+        value = visit.geofenceName.toLowerCase();
+        break;
+      case 'enterTime':
+        value = enterTime.toLowerCase();
+        break;
+      case 'exitTime':
+        value = exitTime.toLowerCase();
+        break;
+      case 'duration':
+        value = parseDurationToMinutes(formatDuration(visit.duration));
+        return compareNumbers(value, filter.value, filter.operator);
+      default:
+        return true;
+    }
 
-      if (typeof value === 'string') {
-        return value.includes(filter.value.toLowerCase());
-      }
-      return true;
-    });
+    if (typeof value === 'string') {
+      return value.includes(filter.value.toLowerCase());
+    }
+    return true;
   });
+});
+
+  const sortedVisits = useMemo(() => {
+  const sorted = [...filteredVisits];
+
+  sorted.sort((a, b) => {
+    let aValue: string | number = '';
+    let bValue: string | number = '';
+
+    switch (visitSort.column) {
+      case 'device':
+        aValue = a.deviceName.toLowerCase();
+        bValue = b.deviceName.toLowerCase();
+        break;
+      case 'geofenceName':
+        aValue = a.geofenceName.toLowerCase();
+        bValue = b.geofenceName.toLowerCase();
+        break;
+      case 'enterTime':
+        aValue = new Date(a.enterTime).getTime();
+        bValue = new Date(b.enterTime).getTime();
+        break;
+      case 'exitTime':
+        aValue = a.exitTime ? new Date(a.exitTime).getTime() : -1;
+        bValue = b.exitTime ? new Date(b.exitTime).getTime() : -1;
+        break;
+      case 'duration':
+        aValue = a.duration;
+        bValue = b.duration;
+        break;
+      default:
+        return 0;
+    }
+
+    if (aValue < bValue) return visitSort.direction === 'asc' ? -1 : 1;
+    if (aValue > bValue) return visitSort.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  return sorted;
+}, [filteredVisits, visitSort]);
 
   const exportTripReport = () => {
     // Prepare data for Excel
@@ -2065,16 +2130,50 @@ useEffect(() => {
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow key="visits-header">
-                        <TableHead key="visits-h-device">Device</TableHead>
-                        <TableHead key="visits-h-geofence">Geofence Name</TableHead>
-                        <TableHead key="visits-h-enter">Enter Time (UTC+3)</TableHead>
-                        <TableHead key="visits-h-exit">Exit Time (UTC+3)</TableHead>
-                        <TableHead key="visits-h-duration">Duration</TableHead>
-                      </TableRow>
-                    </TableHeader>
+  <TableRow key="visits-header">
+    <TableHead
+      key="visits-h-device"
+      className="cursor-pointer select-none"
+      onClick={() => handleVisitSort('device')}
+    >
+      Device {visitSort.column === 'device' ? (visitSort.direction === 'asc' ? '↑' : '↓') : ''}
+    </TableHead>
+
+    <TableHead
+      key="visits-h-geofence"
+      className="cursor-pointer select-none"
+      onClick={() => handleVisitSort('geofenceName')}
+    >
+      Geofence Name {visitSort.column === 'geofenceName' ? (visitSort.direction === 'asc' ? '↑' : '↓') : ''}
+    </TableHead>
+
+    <TableHead
+      key="visits-h-enter"
+      className="cursor-pointer select-none"
+      onClick={() => handleVisitSort('enterTime')}
+    >
+      Enter Time (UTC+3) {visitSort.column === 'enterTime' ? (visitSort.direction === 'asc' ? '↑' : '↓') : ''}
+    </TableHead>
+
+    <TableHead
+      key="visits-h-exit"
+      className="cursor-pointer select-none"
+      onClick={() => handleVisitSort('exitTime')}
+    >
+      Exit Time (UTC+3) {visitSort.column === 'exitTime' ? (visitSort.direction === 'asc' ? '↑' : '↓') : ''}
+    </TableHead>
+
+    <TableHead
+      key="visits-h-duration"
+      className="cursor-pointer select-none"
+      onClick={() => handleVisitSort('duration')}
+    >
+      Duration {visitSort.column === 'duration' ? (visitSort.direction === 'asc' ? '↑' : '↓') : ''}
+    </TableHead>
+  </TableRow>
+</TableHeader>
                     <TableBody>
-                      {filteredVisits.map((visit, index) => (
+                      {sortedVisits.map((visit, index) => (
                         <TableRow key={visit.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                           <TableCell className="font-medium max-w-xs">
                             <div className="whitespace-normal">{visit.deviceName}</div>
