@@ -728,6 +728,39 @@ export function Reports() {
   const [visitGeofenceSearch, setVisitGeofenceSearch] = useState("");
   const [visitGeofenceDropdownOpen, setVisitGeofenceDropdownOpen] = useState(false);
   const visitGeofenceDropdownRef = useRef<HTMLDivElement | null>(null);
+  type TripSortColumn =
+  | 'device'
+  | 'startTime'
+  | 'from'
+  | 'endTime'
+  | 'to'
+  | 'distance'
+  | 'duration'
+  | 'maxSpeed';
+
+const [tripSort, setTripSort] = useState<{
+  column: TripSortColumn;
+  direction: SortDirection;
+}>({
+  column: 'startTime',
+  direction: 'desc',
+});
+
+const handleTripSort = (column: TripSortColumn) => {
+  setTripSort((prev) => {
+    if (prev.column === column) {
+      return {
+        column,
+        direction: prev.direction === 'asc' ? 'desc' : 'asc',
+      };
+    }
+
+    return {
+      column,
+      direction: 'asc',
+    };
+  });
+};
   type VisitSortColumn = 'device' | 'geofenceName' | 'enterTime' | 'exitTime' | 'duration';
   type SortDirection = 'asc' | 'desc';
   
@@ -1273,6 +1306,56 @@ useEffect(() => {
     });
   });
 
+  const sortedTrips = useMemo(() => {
+  const sorted = [...filteredTrips];
+
+  sorted.sort((a, b) => {
+    let aValue: string | number = '';
+    let bValue: string | number = '';
+
+    switch (tripSort.column) {
+      case 'device':
+        aValue = a.deviceName.toLowerCase();
+        bValue = b.deviceName.toLowerCase();
+        break;
+      case 'startTime':
+        aValue = new Date(a.startTime).getTime();
+        bValue = new Date(b.startTime).getTime();
+        break;
+      case 'from':
+        aValue = a.startAddress.toLowerCase();
+        bValue = b.startAddress.toLowerCase();
+        break;
+      case 'endTime':
+        aValue = new Date(a.endTime).getTime();
+        bValue = new Date(b.endTime).getTime();
+        break;
+      case 'to':
+        aValue = a.endAddress.toLowerCase();
+        bValue = b.endAddress.toLowerCase();
+        break;
+      case 'distance':
+        aValue = convertDistance(a.distance);
+        bValue = convertDistance(b.distance);
+        break;
+      case 'duration':
+        aValue = a.duration;
+        bValue = b.duration;
+        break;
+      case 'maxSpeed':
+        aValue = convertSpeed(a.maxSpeed);
+        bValue = convertSpeed(b.maxSpeed);
+        break;
+    }
+
+    if (aValue < bValue) return tripSort.direction === 'asc' ? -1 : 1;
+    if (aValue > bValue) return tripSort.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  return sorted;
+}, [filteredTrips, tripSort]);
+  
   // Apply dynamic filters to events
   const filteredEventsWithColumns = filteredEvents.filter(event => {
     if (eventDynamicFilters.length === 0) return true;
@@ -1397,7 +1480,7 @@ const filteredVisits = visits.filter((visit) => {
 
   const exportTripReport = () => {
     // Prepare data for Excel
-    const data = filteredTrips.map((trip) => ({
+  const data = sortedTrips.map((trip) => ({
       'Device': trip.deviceName,
       'Start Time (UTC+3)': convertToUTC3(trip.startTime),
       'From': trip.startAddress,
@@ -1764,21 +1847,41 @@ const filteredVisits = visits.filter((visit) => {
               ) : (
                 <div className="overflow-x-auto">
                   <Table>
-                    <TableHeader>
-                      <TableRow key="trips-header">
-                        <TableHead key="trips-h-device">Device</TableHead>
-                        <TableHead key="trips-h-start">Start Time (UTC+3)</TableHead>
-                        <TableHead key="trips-h-from">From</TableHead>
-                        <TableHead key="trips-h-end">End Time (UTC+3)</TableHead>
-                        <TableHead key="trips-h-to">To</TableHead>
-                        <TableHead key="trips-h-distance">Distance</TableHead>
-                        <TableHead key="trips-h-duration">Duration</TableHead>
-                        <TableHead key="trips-h-speed">Max Speed</TableHead>
-                        <TableHead key="trips-h-map">Map</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                    <TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('device')}>
+  Device {tripSort.column === 'device' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
+</TableHead>
+
+<TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('startTime')}>
+  Start Time (UTC+3) {tripSort.column === 'startTime' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
+</TableHead>
+
+<TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('from')}>
+  From {tripSort.column === 'from' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
+</TableHead>
+
+<TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('endTime')}>
+  End Time (UTC+3) {tripSort.column === 'endTime' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
+</TableHead>
+
+<TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('to')}>
+  To {tripSort.column === 'to' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
+</TableHead>
+
+<TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('distance')}>
+  Distance {tripSort.column === 'distance' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
+</TableHead>
+
+<TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('duration')}>
+  Duration {tripSort.column === 'duration' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
+</TableHead>
+
+<TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('maxSpeed')}>
+  Max Speed {tripSort.column === 'maxSpeed' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
+</TableHead>
+
+<TableHead>Map</TableHead>
                     <TableBody>
-                      {filteredTrips.map((trip, index) => {
+                      {sortedTrips.map((trip, index) => {
                         const startDateTime = convertToUTC3Split(trip.startTime);
                         const endDateTime = convertToUTC3Split(trip.endTime);
                         
