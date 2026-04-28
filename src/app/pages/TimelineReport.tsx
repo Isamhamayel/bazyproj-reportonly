@@ -148,7 +148,8 @@ function buildBlocks(positions: Position[], geofenceMap: Record<string, string>)
 
     const distance = Number(attrs.distance || 0) / 1000;
     const deviceDistance = Number(attrs.deviceDistance || 0) / 1000;
-    const isInvalid = p.valid === false || deviceDistance > 15 || distance > 10;
+    const matarProblem = attrs.matarProblem === true;
+    const isInvalid = p.valid === false || matarProblem||deviceDistance > 15 || distance > 10;
 
     let status: TimelineBlock["status"] = "إيقاف";
     let icon = "⚫️";
