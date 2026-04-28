@@ -392,7 +392,7 @@ export default function TimelineReport() {
     );
 
     const finalText = [
-      `الجهاز: ${report.summary.selectedDeviceName}`,
+      `المركبة: ${report.summary.selectedDeviceName}`,
       `من: ${report.summary.from}`,
       `إلى: ${report.summary.to}`,
       "",
@@ -410,7 +410,7 @@ export default function TimelineReport() {
     }
 
     const rows: any[][] = [];
-    rows.push(["الجهاز", report.summary.selectedDeviceName]);
+    rows.push(["المركبة", report.summary.selectedDeviceName]);
     rows.push(["من", report.summary.from]);
     rows.push(["إلى", report.summary.to]);
     rows.push(["مدة الإيقاف", report.summary.offDuration]);
@@ -490,7 +490,7 @@ export default function TimelineReport() {
         <div className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100 sticky top-0 z-20">
           <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
             <div className="md:col-span-2">
-              <label className="text-sm font-semibold">الجهاز</label>
+              <label className="text-sm font-semibold">المركبة</label>
               <select
                 className="w-full rounded-xl border px-3 py-2 bg-white"
                 value={selectedDeviceId}
@@ -566,7 +566,7 @@ export default function TimelineReport() {
 
           {report && (
             <div className="mt-4 rounded-xl bg-gray-50 border p-3 text-sm font-semibold leading-8">
-              الجهاز: {report.summary.selectedDeviceName || "-"} | من: {report.summary.from} | إلى:{" "}
+              المركبة: {report.summary.selectedDeviceName || "-"} | من: {report.summary.from} | إلى:{" "}
               {report.summary.to} | الإيقاف: {report.summary.offDuration} | الحركة:{" "}
               {report.summary.movingDuration} | التوقف: {report.summary.idleDuration} | المسافة:{" "}
               {report.summary.movingDistance} كم
