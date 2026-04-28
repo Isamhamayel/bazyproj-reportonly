@@ -7,6 +7,10 @@ type Device = {
   id: number;
   name: string;
 };
+const [gfModal, setGfModal] = useState(null);
+const [gfName, setGfName] = useState("");
+const [gfRadius, setGfRadius] = useState(100);
+const [gfColor, setGfColor] = useState("#0b57d0");
 
 type Position = {
   id?: number;
@@ -672,8 +676,12 @@ export default function TimelineReport() {
                   </td>
                   <td className="border p-2">
                     <button
-                      onClick={() => createGeofence(b)}
-                      className="rounded-lg bg-blue-600 text-white px-2 py-1 inline-flex gap-1 items-center"
+                      onClick={() => {
+  setGfModal(b);
+  setGfName(b.address ? `GF - ${b.address}` : "GF - Timeline");
+  setGfRadius(100);
+  setGfColor("#0b57d0");
+}}
                     >
                       <PlusCircle size={15} />
                       إضافة
@@ -694,6 +702,61 @@ export default function TimelineReport() {
           />
         </div>
       </div>
+          {/* ⬇️ ADD MODAL HERE ⬇️ */}
+    {gfModal && (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-white p-4 rounded-xl w-[400px] space-y-3">
+          <h3 className="font-bold text-lg">إضافة جيوفنس</h3>
+
+          <input
+            className="w-full border rounded p-2"
+            value={gfName}
+            onChange={(e) => setGfName(e.target.value)}
+          />
+
+          <input
+            type="number"
+            className="w-full border rounded p-2"
+            value={gfRadius}
+            onChange={(e) => setGfRadius(Number(e.target.value))}
+          />
+
+          <select
+            className="w-full border rounded p-2"
+            value={gfColor}
+            onChange={(e) => setGfColor(e.target.value)}
+          >
+            <option value="#0b57d0">أزرق</option>
+            <option value="#198754">أخضر</option>
+            <option value="#ff0000">أحمر</option>
+          </select>
+
+          <div className="flex gap-2">
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded"
+              onClick={async () => {
+                await api.createGeofence({
+                  name: gfName,
+                  area: `CIRCLE (${gfModal.lat} ${gfModal.lon}, ${gfRadius})`,
+                  attributes: { color: gfColor },
+                });
+                setGfModal(null);
+              }}
+            >
+              حفظ
+            </button>
+
+            <button
+              className="bg-gray-300 px-4 py-2 rounded"
+              onClick={() => setGfModal(null)}
+            >
+              إلغاء
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    {/* ⬆️ END MODAL ⬆️ */}
     </div>
   );
 }
