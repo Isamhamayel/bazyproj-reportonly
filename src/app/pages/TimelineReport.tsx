@@ -7,10 +7,6 @@ type Device = {
   id: number;
   name: string;
 };
-const [gfModal, setGfModal] = useState(null);
-const [gfName, setGfName] = useState("");
-const [gfRadius, setGfRadius] = useState(100);
-const [gfColor, setGfColor] = useState("#0b57d0");
 
 type Position = {
   id?: number;
@@ -303,6 +299,11 @@ export default function TimelineReport() {
   const [checkedText, setCheckedText] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [gfModal, setGfModal] = useState(null);
+  const [gfName, setGfName] = useState("");
+  const [gfRadius, setGfRadius] = useState(100);
+  const [gfColor, setGfColor] = useState("#0b57d0");
+
 
   const selectedDeviceName = useMemo(() => {
     return devices.find((d) => String(d.id) === selectedDeviceId)?.name || "";
