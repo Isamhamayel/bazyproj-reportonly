@@ -572,8 +572,6 @@ export default function TimelineReport() {
         </div>
 
         <div className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100">
-          <h2 className="font-bold mb-3">المخطط الزمني</h2>
-
           {!report?.blocks?.length ? (
             <div className="text-gray-500">لا توجد بيانات بعد.</div>
           ) : (
