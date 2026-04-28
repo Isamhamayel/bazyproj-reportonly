@@ -482,13 +482,6 @@ export default function TimelineReport() {
     <div dir="rtl" className="min-h-screen bg-[#f6f7fb] p-4 text-[#172033]">
       <div className="mx-auto max-w-[1500px] space-y-4">
         <div className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100 sticky top-0 z-20">
-          <div className="flex items-center justify-between gap-3 mb-4">
-            <div>
-              <h1 className="text-2xl font-bold">تقرير الخط الزمني</h1>
-              <p className="text-sm text-gray-500">Bazytrack Go Timeline Report</p>
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
             <div className="md:col-span-2">
               <label className="text-sm font-semibold">الجهاز</label>
