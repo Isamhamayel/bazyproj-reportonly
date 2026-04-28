@@ -1835,6 +1835,55 @@ const filteredVisits = visits.filter((visit) => {
       Export
     </Button>
   </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card key="trip-card-distance">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Total Distance</p>
+                    <p className="text-2xl font-semibold">{totalDistance.toFixed(1)} km</p>
+                    <p className="text-xs text-gray-500 mt-2">{selectedVehicleSummary}</p>
+                    <p className="text-xs text-gray-500">{selectedDateLabel}</p>
+                  </div>
+                  <div className="bg-blue-500 p-3 rounded-lg">
+                    <MapPin className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card key="trip-card-duration">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Total Duration</p>
+                    <p className="text-2xl font-semibold">{formatDuration(totalDuration)}</p>
+                    <p className="text-xs text-gray-500 mt-2">{selectedVehicleSummary}</p>
+                    <p className="text-xs text-gray-500">{selectedDateLabel}</p>
+                  </div>
+                  <div className="bg-purple-500 p-3 rounded-lg">
+                    <Clock className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card key="trip-card-speed">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Max Speed</p>
+                    <p className="text-2xl font-semibold">{convertSpeed(maxSpeed).toFixed(1)} km/h</p>
+                    <p className="text-xs text-gray-500 mt-2">{selectedVehicleSummary}</p>
+                    <p className="text-xs text-gray-500">{selectedDateLabel}</p>
+                  </div>
+                  <div className="bg-green-500 p-3 rounded-lg">
+                    <TrendingUp className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 </CardHeader>
             <CardContent>
               {loading ? (
@@ -1935,55 +1984,7 @@ const filteredVisits = visits.filter((visit) => {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Card key="trip-card-distance">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Total Distance</p>
-                    <p className="text-2xl font-semibold">{totalDistance.toFixed(1)} km</p>
-                    <p className="text-xs text-gray-500 mt-2">{selectedVehicleSummary}</p>
-                    <p className="text-xs text-gray-500">{selectedDateLabel}</p>
-                  </div>
-                  <div className="bg-blue-500 p-3 rounded-lg">
-                    <MapPin className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card key="trip-card-duration">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Total Duration</p>
-                    <p className="text-2xl font-semibold">{formatDuration(totalDuration)}</p>
-                    <p className="text-xs text-gray-500 mt-2">{selectedVehicleSummary}</p>
-                    <p className="text-xs text-gray-500">{selectedDateLabel}</p>
-                  </div>
-                  <div className="bg-purple-500 p-3 rounded-lg">
-                    <Clock className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card key="trip-card-speed">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Max Speed</p>
-                    <p className="text-2xl font-semibold">{convertSpeed(maxSpeed).toFixed(1)} km/h</p>
-                    <p className="text-xs text-gray-500 mt-2">{selectedVehicleSummary}</p>
-                    <p className="text-xs text-gray-500">{selectedDateLabel}</p>
-                  </div>
-                  <div className="bg-green-500 p-3 rounded-lg">
-                    <TrendingUp className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+         
 
         </TabsContent>
 
