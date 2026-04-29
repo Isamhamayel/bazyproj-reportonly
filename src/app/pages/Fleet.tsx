@@ -446,7 +446,7 @@ export function Fleet() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 mb-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-8 gap-2 mb-3">
               <Select value={ignitionFilter} onValueChange={setIgnitionFilter}>
                 <SelectTrigger className="w-full">
                   <div className="flex items-center gap-1 truncate">
