@@ -301,7 +301,7 @@ export default function TimelineReport() {
   const [checkedText, setCheckedText] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [gfModal, setGfModal] = useState(null);
+  const [gfModal, setGfModal] = useState<TimelineBlock | null>(null);
   const [gfName, setGfName] = useState("");
   const [gfRadius, setGfRadius] = useState(100);
   const [gfColor, setGfColor] = useState("#0b57d0");
@@ -511,7 +511,7 @@ export default function TimelineReport() {
                 value={selectedDeviceId}
                 onChange={(e) => setSelectedDeviceId(e.target.value)}
               >
-                filteredDevices.map((d) => (
+                {filteredDevices.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.name}
                   </option>
