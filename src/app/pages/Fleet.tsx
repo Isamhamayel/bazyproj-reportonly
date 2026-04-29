@@ -67,6 +67,8 @@ export function Fleet() {
   const savedScrollPosition = useRef({ top: 0, left: 0 });
   const hasLoadedOnceRef = useRef(false);
 
+  
+
   // Load favorites from localStorage on mount
   useEffect(() => {
     const savedFavorites = localStorage.getItem("fleet_favorites");
@@ -385,23 +387,7 @@ export function Fleet() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold mb-1">Fleet Management</h1>
-          <p className="text-sm sm:text-base text-gray-600">Monitor and manage all your vehicles</p>
-        </div>
-        <Button
-          onClick={handleManualRefresh}
-          variant="outline"
-          size="lg"
-          className="flex items-center justify-center gap-2 w-full sm:w-auto"
-        >
-          <RefreshCw className="w-5 h-5" />
-          <span>Refresh Now</span>
-        </Button>
-      </div>
-
-      <Card>
+       <Card>
         <CardContent className="p-3 sm:p-4">
           <div className="mb-3">
             <div className="relative">
@@ -556,6 +542,15 @@ export function Fleet() {
               <Download className="w-4 h-4 mr-1 sm:mr-2" />
               <span className="text-xs sm:text-sm">Export</span>
             </Button>
+              <Button
+          onClick={handleManualRefresh}
+          variant="outline"
+          size="lg"
+          className="flex items-center justify-center gap-2 w-full sm:w-auto"
+        >
+          <RefreshCw className="w-5 h-5" />
+          <span>Refresh Now</span>
+        </Button>
           </div>
         </CardContent>
       </Card>
