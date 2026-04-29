@@ -195,13 +195,16 @@ function buildBlocks(positions: Position[], geofenceMap: Record<string, string>)
     };
 
     const last = rawBlocks[rawBlocks.length - 1];
+if (
+  last &&
+  (
+    // If stopped, do NOT split by geofence
+    (last.status === "إيقاف" && item.status === "إيقاف") ||
 
-    if (
-      last &&
-      (((last.status === "إيقاف" || last.status === "تشويش") &&
-        (item.status === "إيقاف" || item.status === "تشويش")) ||
-        (last.status === item.status && last.geofenceName === item.geofenceName))
-    ) {
+    // For other statuses, split only when status/geofence changes
+    (last.status === item.status && last.geofenceName === item.geofenceName)
+  )
+) {
       last.end = item.end;
       last.durationSec += item.durationSec;
       last.distance += item.distance;
