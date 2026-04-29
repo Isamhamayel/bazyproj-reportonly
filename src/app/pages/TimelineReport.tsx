@@ -497,7 +497,7 @@ export default function TimelineReport() {
 
   return (
     <div dir="rtl" className="min-h-screen bg-[#f6f7fb] p-4 text-[#172033]">
-      <div className="mx-auto max-w-[1500px] space-y-4">
+     <div className="mx-auto max-w-[1500px] space-y-2">
         <div className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100 sticky top-0 z-20">
          <div className="flex items-end gap-2 flex-wrap">
             <div className="w-[330px] relative">
@@ -611,7 +611,7 @@ export default function TimelineReport() {
           </div>
 
           {report && (
-            <div className="mt-4 rounded-xl bg-gray-50 border p-3 text-sm font-semibold leading-8">
+            <div className="mt-2 rounded-xl bg-gray-50 border p-2 text-xs font-semibold leading-6">
               المركبة: {report.summary.selectedDeviceName || "-"} | من: {report.summary.from} | إلى:{" "}
               {report.summary.to} | الإيقاف: {report.summary.offDuration} | الحركة:{" "}
               {report.summary.movingDuration} | التوقف: {report.summary.idleDuration} | المسافة:{" "}
@@ -623,12 +623,12 @@ export default function TimelineReport() {
           {message && <div className="mt-3 text-sm font-semibold">{message}</div>}
         </div>
 
-        <div className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100">
+        <div className="rounded-2xl bg-white p-3 shadow-sm border border-gray-100">
           {!report?.blocks?.length ? (
             <div className="text-gray-500">لا توجد بيانات بعد.</div>
           ) : (
             <>
-              <div className="flex h-9 overflow-hidden rounded-xl border bg-gray-50">
+              <div className="flex h-6 overflow-hidden rounded-lg border bg-gray-50">
                 {report.blocks.map((b, i) => {
                   const width = totalDuration > 0 ? (Math.max(1, b.durationSec) / totalDuration) * 100 : 0;
                   return (
@@ -741,7 +741,7 @@ export default function TimelineReport() {
           </table>
         </div>
 
-        <div className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100">
+        <div className="rounded-2xl bg-white p-3 shadow-sm border border-gray-100">
           <h2 className="font-bold mb-2">النص الناتج من الصفوف المحددة</h2>
           <textarea
             className="w-full min-h-[150px] rounded-xl border p-3"
