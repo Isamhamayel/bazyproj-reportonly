@@ -608,6 +608,7 @@ export default function TimelineReport() {
               Excel
             </button>
           </div>
+          </div>
 
           {report && (
             <div className="mt-4 rounded-xl bg-gray-50 border p-3 text-sm font-semibold leading-8">
@@ -754,38 +755,34 @@ export default function TimelineReport() {
       <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
         <div className="bg-white p-4 rounded-xl w-[400px] space-y-3">
           <h3 className="font-bold text-lg">إضافة جيوفنس</h3>
+          <input
+  className="w-full border rounded p-2"
+  value={gfName}
+  onChange={(e) => setGfName(e.target.value)}
+  placeholder="اسم الجيوفنس"
+/>
+
+<input
+  type="number"
+  className="w-full border rounded p-2"
+  value={gfRadius}
+  onChange={(e) => setGfRadius(Number(e.target.value))}
+  placeholder="نصف القطر بالمتر"
+/>
+
+<select
+  className="w-full border rounded p-2"
+  value={gfColor}
+  onChange={(e) => setGfColor(e.target.value)}
+>
+  <option value="#0b57d0">أزرق</option>
+  <option value="#198754">أخضر</option>
+  <option value="#ff0000">أحمر</option>
+</select>
 
           
 
-         <div className="relative">
-  <input
-    type="text"
-    placeholder="ابحث عن المركبة..."
-    className="w-full rounded-xl border px-3 py-2 bg-white"
-    value={deviceSearch}
-    onChange={(e) => {
-      setDeviceSearch(e.target.value);
-      setSelectedDeviceId("");
-    }}
-  />
-
-  {deviceSearch && filteredDevices.length > 0 && (
-    <div className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-xl border bg-white shadow-lg">
-      {filteredDevices.map((d) => (
-        <div
-          key={d.id}
-          className="cursor-pointer px-3 py-2 hover:bg-gray-100"
-          onClick={() => {
-            setSelectedDeviceId(String(d.id));
-            setDeviceSearch(d.name);
-          }}
-        >
-          {d.name}
-        </div>
-      ))}
-    </div>
-  )}
-</div>
+       
 
           <div className="flex gap-2">
             <button
