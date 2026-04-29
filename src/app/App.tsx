@@ -1,4 +1,3 @@
-// src/app/App.tsx
 import { useState } from "react";
 import { BarChart3, Clock3, Radio } from "lucide-react";
 
@@ -16,14 +15,12 @@ export default function App() {
 
   const labels = {
     ar: {
-      title: "Bazytrack Go",
       reports: "التقارير",
       timeline: "الخط الزمني",
       live: "المباشر",
       lang: "English",
     },
     en: {
-      title: "Bazytrack Go",
       reports: "Reports",
       timeline: "Timeline",
       live: "Live",
@@ -31,27 +28,25 @@ export default function App() {
     },
   };
 
-  const menuItemClass = (target: Page) =>
-    `w-full flex items-center gap-2 rounded-xl px-3 py-2 mb-2 text-start transition ${
+  const tabClass = (target: Page) =>
+    `flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
       page === target
         ? "bg-blue-600 text-white shadow-sm"
-        : "text-gray-700 hover:bg-gray-100"
+        : "bg-white text-gray-700 hover:bg-gray-100 border"
     }`;
 
   return (
     <div
       dir={isArabic ? "rtl" : "ltr"}
-      className="h-screen flex bg-gray-50 overflow-hidden"
+      className="h-screen flex flex-col bg-gray-50 overflow-hidden"
     >
-      <aside className="w-56 shrink-0 bg-white border shadow-sm p-4">
-        <div className="font-bold mb-6 text-lg">
-          {labels[lang].title}
-        </div>
+      <header className="shrink-0 bg-white border-b px-3 py-2 flex items-center gap-2">
+        <div className="font-bold text-lg me-4">Bazytrack Go</div>
 
         <button
           type="button"
           onClick={() => setPage("reports")}
-          className={menuItemClass("reports")}
+          className={tabClass("reports")}
         >
           <BarChart3 size={18} />
           {labels[lang].reports}
@@ -60,7 +55,7 @@ export default function App() {
         <button
           type="button"
           onClick={() => setPage("timeline")}
-          className={menuItemClass("timeline")}
+          className={tabClass("timeline")}
         >
           <Clock3 size={18} />
           {labels[lang].timeline}
@@ -69,7 +64,7 @@ export default function App() {
         <button
           type="button"
           onClick={() => setPage("live")}
-          className={menuItemClass("live")}
+          className={tabClass("live")}
         >
           <Radio size={18} />
           {labels[lang].live}
@@ -78,16 +73,24 @@ export default function App() {
         <button
           type="button"
           onClick={() => setLang(isArabic ? "en" : "ar")}
-          className="mt-6 w-full rounded-xl border px-3 py-2 text-sm hover:bg-gray-50"
+          className="ms-auto rounded-xl border px-3 py-2 text-sm hover:bg-gray-50"
         >
           {labels[lang].lang}
         </button>
-      </aside>
+      </header>
 
-      <main className="flex-1 overflow-auto">
-        {page === "reports" && <Reports />}
-        {page === "timeline" && <TimelineReport />}
-        {page === "live" && <Fleet />}
+      <main className="min-h-0 flex-1 overflow-auto">
+        <div className={page === "reports" ? "block h-full" : "hidden"}>
+          <Reports />
+        </div>
+
+        <div className={page === "timeline" ? "block h-full" : "hidden"}>
+          <TimelineReport />
+        </div>
+
+        <div className={page === "live" ? "block h-full" : "hidden"}>
+          <Fleet />
+        </div>
       </main>
     </div>
   );
