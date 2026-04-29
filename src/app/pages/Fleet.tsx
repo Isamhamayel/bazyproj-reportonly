@@ -839,7 +839,7 @@ export function Fleet() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[180px]">Device Name</TableHead>
+                    <TableHead className="w-[240px]">Device Name</TableHead>
                     <TableHead>Ignition</TableHead>
                     <TableHead>Speed</TableHead>
                     <TableHead>Location</TableHead>
