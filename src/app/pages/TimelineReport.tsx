@@ -306,6 +306,11 @@ export default function TimelineReport() {
   const [gfRadius, setGfRadius] = useState(100);
   const [gfColor, setGfColor] = useState("#0b57d0");
 
+    const filteredDevices = devices.filter((d) =>
+  d.name.toLowerCase().includes(deviceSearch.toLowerCase())
+);
+
+
 
   const selectedDeviceName = useMemo(() => {
     return devices.find((d) => String(d.id) === selectedDeviceId)?.name || "";
@@ -483,9 +488,6 @@ export default function TimelineReport() {
     }
   }
 
-  const filteredDevices = devices.filter((d) =>
-  d.name.toLowerCase().includes(deviceSearch.toLowerCase())
-);
 
   const totalDuration = report?.blocks.reduce((sum, b) => sum + Math.max(1, b.durationSec), 0) || 0;
 
