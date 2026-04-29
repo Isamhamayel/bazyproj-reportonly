@@ -323,7 +323,10 @@ export default function TimelineReport() {
       try {
         const result = await api.getDevices();
         setDevices(result || []);
-        if (result?.length) setSelectedDeviceId(String(result[0].id));
+        if (result?.length) {
+  setSelectedDeviceId(String(result[0].id));
+  setDeviceSearch(result[0].name);
+}
       } catch (e: any) {
         setMessage(e?.message || "فشل تحميل الأجهزة");
       } finally {
@@ -725,28 +728,37 @@ export default function TimelineReport() {
         <div className="bg-white p-4 rounded-xl w-[400px] space-y-3">
           <h3 className="font-bold text-lg">إضافة جيوفنس</h3>
 
-          <input
-            className="w-full border rounded p-2"
-            value={gfName}
-            onChange={(e) => setGfName(e.target.value)}
-          />
+          
 
-          <input
-            type="number"
-            className="w-full border rounded p-2"
-            value={gfRadius}
-            onChange={(e) => setGfRadius(Number(e.target.value))}
-          />
+         <div className="relative">
+  <input
+    type="text"
+    placeholder="ابحث عن المركبة..."
+    className="w-full rounded-xl border px-3 py-2 bg-white"
+    value={deviceSearch}
+    onChange={(e) => {
+      setDeviceSearch(e.target.value);
+      setSelectedDeviceId("");
+    }}
+  />
 
-          <select
-            className="w-full border rounded p-2"
-            value={gfColor}
-            onChange={(e) => setGfColor(e.target.value)}
-          >
-            <option value="#0b57d0">أزرق</option>
-            <option value="#198754">أخضر</option>
-            <option value="#ff0000">أحمر</option>
-          </select>
+  {deviceSearch && filteredDevices.length > 0 && (
+    <div className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-xl border bg-white shadow-lg">
+      {filteredDevices.map((d) => (
+        <div
+          key={d.id}
+          className="cursor-pointer px-3 py-2 hover:bg-gray-100"
+          onClick={() => {
+            setSelectedDeviceId(String(d.id));
+            setDeviceSearch(d.name);
+          }}
+        >
+          {d.name}
+        </div>
+      ))}
+    </div>
+  )}
+</div>
 
           <div className="flex gap-2">
             <button
