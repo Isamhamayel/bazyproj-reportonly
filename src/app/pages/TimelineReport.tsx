@@ -305,6 +305,7 @@ export default function TimelineReport() {
   const [gfName, setGfName] = useState("");
   const [gfRadius, setGfRadius] = useState(100);
   const [gfColor, setGfColor] = useState("#0b57d0");
+  const [deviceDropdownOpen, setDeviceDropdownOpen] = useState(false);
 
     const filteredDevices = devices.filter((d) =>
   d.name.toLowerCase().includes(deviceSearch.toLowerCase())
@@ -324,9 +325,9 @@ export default function TimelineReport() {
         const result = await api.getDevices();
         setDevices(result || []);
         if (result?.length) {
-  setSelectedDeviceId(String(result[0].id));
-  setDeviceSearch(result[0].name);
-}
+          setSelectedDeviceId(String(result[0].id));
+          setDeviceSearch(result[0].name);
+        }
       } catch (e: any) {
         setMessage(e?.message || "فشل تحميل الأجهزة");
       } finally {
@@ -499,28 +500,51 @@ export default function TimelineReport() {
       <div className="mx-auto max-w-[1500px] space-y-4">
         <div className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100 sticky top-0 z-20">
           <div className="grid grid-cols-12 gap-2 items-end">
-            <div className="md:col-span-2">
-              <label className="text-sm font-semibold">المركبة</label>
-              {/* 🔍 search input */}
+            <div className="relative">
   <input
     type="text"
-    placeholder="ابحث عن المركبة..."
-    className="w-full rounded-xl border px-3 py-2 mb-2"
+    placeholder="Search vehicle..."
+    className="w-full rounded-xl border px-3 py-2 bg-white"
     value={deviceSearch}
-    onChange={(e) => setDeviceSearch(e.target.value)}
+    onChange={(e) => {
+      setDeviceSearch(e.target.value);
+      setSelectedDeviceId("");
+    }}
+    onFocus={() => setDeviceDropdownOpen(true)}
   />
-              <select
-                className="w-full rounded-xl border px-3 py-2 bg-white"
-                value={selectedDeviceId}
-                onChange={(e) => setSelectedDeviceId(e.target.value)}
-              >
-                {filteredDevices.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+
+  {deviceDropdownOpen && (
+    <div className="absolute z-50 mt-1 w-full rounded-xl border bg-white shadow-lg">
+      <div className="p-2">
+        <input
+          type="text"
+          placeholder="Search vehicle..."
+          className="w-full rounded-lg border px-3 py-2"
+          value={deviceSearch}
+          onChange={(e) => setDeviceSearch(e.target.value)}
+          autoFocus
+        />
+      </div>
+
+      <div className="max-h-56 overflow-auto">
+        {filteredDevices.map((d) => (
+          <button
+            key={d.id}
+            type="button"
+            className="block w-full px-3 py-2 text-right hover:bg-gray-100"
+            onClick={() => {
+              setSelectedDeviceId(String(d.id));
+              setDeviceSearch(d.name);
+              setDeviceDropdownOpen(false);
+            }}
+          >
+            {d.name}
+          </button>
+        ))}
+      </div>
+    </div>
+  )}
+</div>
 
             <div>
               <label className="text-sm font-semibold">من تاريخ</label>
