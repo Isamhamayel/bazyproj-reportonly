@@ -863,11 +863,6 @@ export function Fleet() {
         </div>
       ) : (
         <Card className={tableMaximized ? "h-[calc(100vh-72px)] overflow-hidden" : ""}>
-          <CardHeader className="py-2">
-            <CardTitle className="text-sm font-semibold">
-              Devices ({filteredDevices.length} of {devices.length})
-            </CardTitle>
-          </CardHeader>
           <CardContent className="p-2">
             <div className={tableMaximized ? "h-[calc(100vh-130px)] overflow-auto" : "overflow-x-auto"}>
               <Table className="text-xs">
