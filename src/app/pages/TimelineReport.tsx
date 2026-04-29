@@ -499,7 +499,7 @@ export default function TimelineReport() {
     <div dir="rtl" className="min-h-screen bg-[#f6f7fb] p-4 text-[#172033]">
       <div className="mx-auto max-w-[1500px] space-y-4">
         <div className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100 sticky top-0 z-20">
-          <div className="grid grid-cols-12 gap-2 items-end">
+         <div className="flex items-end gap-2 flex-wrap">
             <div className="relative">
   <input
     type="text"
@@ -546,48 +546,51 @@ export default function TimelineReport() {
   )}
 </div>
 
-            <div>
-              <label className="text-sm font-semibold">من تاريخ</label>
-              <input
-                type="date"
-                className="w-full rounded-xl border px-3 py-2"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-              />
-            </div>
+             {/* From Date */}
+  <div className="w-[140px]">
+    <label className="text-xs font-semibold">من تاريخ</label>
+    <input
+      type="date"
+      className="w-full rounded-lg border px-2 py-1 text-sm"
+      value={fromDate}
+      onChange={(e) => setFromDate(e.target.value)}
+    />
+  </div>
 
-            <div>
-              <label className="text-sm font-semibold">من وقت</label>
-              <input
-                type="time"
-                step="1"
-                className="w-full rounded-xl border px-3 py-2"
-                value={fromTime}
-                onChange={(e) => setFromTime(e.target.value)}
-              />
-            </div>
+  {/* From Time */}
+  <div className="w-[110px]">
+    <label className="text-xs font-semibold">من وقت</label>
+    <input
+      type="time"
+      step="1"
+      className="w-full rounded-lg border px-2 py-1 text-sm"
+      value={fromTime}
+      onChange={(e) => setFromTime(e.target.value)}
+    />
+  </div>
 
-            <div>
-              <label className="text-sm font-semibold">إلى تاريخ</label>
-              <input
-                type="date"
-                className="w-full rounded-xl border px-3 py-2"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-              />
-            </div>
+  {/* To Date */}
+  <div className="w-[140px]">
+    <label className="text-xs font-semibold">إلى تاريخ</label>
+    <input
+      type="date"
+      className="w-full rounded-lg border px-2 py-1 text-sm"
+      value={toDate}
+      onChange={(e) => setToDate(e.target.value)}
+    />
+  </div>
 
-            <div>
-              <label className="text-sm font-semibold">إلى وقت</label>
-              <input
-                type="time"
-                step="1"
-                className="w-full rounded-xl border px-3 py-2"
-                value={toTime}
-                onChange={(e) => setToTime(e.target.value)}
-              />
-            </div>
-          </div>
+  {/* To Time */}
+  <div className="w-[110px]">
+    <label className="text-xs font-semibold">إلى وقت</label>
+    <input
+      type="time"
+      step="1"
+      className="w-full rounded-lg border px-2 py-1 text-sm"
+      value={toTime}
+      onChange={(e) => setToTime(e.target.value)}
+    />
+  </div>
 
           <div className="flex flex-wrap gap-2 mt-4">
             <button onClick={generateReport} className="rounded-xl bg-blue-600 text-white px-4 py-2 flex gap-2 items-center">
