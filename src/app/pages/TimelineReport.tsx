@@ -289,6 +289,7 @@ function buildReportResult(
 
 export default function TimelineReport() {
   const [devices, setDevices] = useState<Device[]>([]);
+  const [deviceSearch, setDeviceSearch] = useState("");
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const [fromDate, setFromDate] = useState(todayText());
   const [fromTime, setFromTime] = useState("00:00:00");
@@ -482,21 +483,33 @@ export default function TimelineReport() {
     }
   }
 
+  const filteredDevices = devices.filter((d) =>
+  d.name.toLowerCase().includes(deviceSearch.toLowerCase())
+);
+
   const totalDuration = report?.blocks.reduce((sum, b) => sum + Math.max(1, b.durationSec), 0) || 0;
 
   return (
     <div dir="rtl" className="min-h-screen bg-[#f6f7fb] p-4 text-[#172033]">
       <div className="mx-auto max-w-[1500px] space-y-4">
         <div className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100 sticky top-0 z-20">
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
+          <div className="grid grid-cols-12 gap-2 items-end">
             <div className="md:col-span-2">
               <label className="text-sm font-semibold">المركبة</label>
+              {/* 🔍 search input */}
+  <input
+    type="text"
+    placeholder="ابحث عن المركبة..."
+    className="w-full rounded-xl border px-3 py-2 mb-2"
+    value={deviceSearch}
+    onChange={(e) => setDeviceSearch(e.target.value)}
+  />
               <select
                 className="w-full rounded-xl border px-3 py-2 bg-white"
                 value={selectedDeviceId}
                 onChange={(e) => setSelectedDeviceId(e.target.value)}
               >
-                {devices.map((d) => (
+                filteredDevices.map((d) => (
                   <option key={d.id} value={d.id}>
                     {d.name}
                   </option>
