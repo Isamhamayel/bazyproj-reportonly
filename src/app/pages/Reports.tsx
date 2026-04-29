@@ -1482,9 +1482,9 @@ const filteredVisits = visits.filter((visit) => {
     // Prepare data for Excel
   const data = sortedTrips.map((trip) => ({
       'Device': trip.deviceName,
-      'Start Time (UTC+3)': convertToUTC3(trip.startTime),
+      'Start Time': convertToUTC3(trip.startTime),
       'From': trip.startAddress,
-      'End Time (UTC+3)': convertToUTC3(trip.endTime),
+      'End Time': convertToUTC3(trip.endTime),
       'To': trip.endAddress,
       'Distance (km)': convertDistance(trip.distance).toFixed(2),
       'Duration': formatDuration(trip.duration),
@@ -1523,7 +1523,7 @@ const filteredVisits = visits.filter((visit) => {
       return {
         'Device': event.deviceName,
         'Event Type': getEventDisplayName(event),
-        'Event Time (UTC+3)': convertToUTC3(event.eventTime),
+        'Event Time': convertToUTC3(event.eventTime),
         'Speed (km/h)': speedKmh,
         'Address': address,
         'Geofence': getGeofenceName(event, geofenceMap) || '-',
@@ -1554,8 +1554,8 @@ const filteredVisits = visits.filter((visit) => {
     const data = filteredVisits.map((visit) => ({
       'Device': visit.deviceName,
       'Geofence Name': visit.geofenceName,
-      'Enter Time (UTC+3)': convertToUTC3(visit.enterTime),
-      'Exit Time (UTC+3)': visit.exitTime ? convertToUTC3(visit.exitTime) : 'Still inside',
+      'Enter Time': convertToUTC3(visit.enterTime),
+      'Exit Time': visit.exitTime ? convertToUTC3(visit.exitTime) : 'Still inside',
       'Duration': formatDuration(visit.duration),
   }));
 
@@ -1901,7 +1901,7 @@ const filteredVisits = visits.filter((visit) => {
 </TableHead>
 
 <TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('startTime')}>
-  Start Time (UTC+3) {tripSort.column === 'startTime' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
+  Start Time {tripSort.column === 'startTime' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
 </TableHead>
 
 <TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('from')}>
@@ -1909,7 +1909,7 @@ const filteredVisits = visits.filter((visit) => {
 </TableHead>
 
 <TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('endTime')}>
-  End Time (UTC+3) {tripSort.column === 'endTime' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
+  End Time {tripSort.column === 'endTime' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
 </TableHead>
 
 <TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('to')}>
@@ -2256,7 +2256,7 @@ const filteredVisits = visits.filter((visit) => {
       className="cursor-pointer select-none"
       onClick={() => handleVisitSort('enterTime')}
     >
-      Enter Time (UTC+3) {visitSort.column === 'enterTime' ? (visitSort.direction === 'asc' ? '↑' : '↓') : ''}
+      Enter Time {visitSort.column === 'enterTime' ? (visitSort.direction === 'asc' ? '↑' : '↓') : ''}
     </TableHead>
 
     <TableHead
@@ -2264,7 +2264,7 @@ const filteredVisits = visits.filter((visit) => {
       className="cursor-pointer select-none"
       onClick={() => handleVisitSort('exitTime')}
     >
-      Exit Time (UTC+3) {visitSort.column === 'exitTime' ? (visitSort.direction === 'asc' ? '↑' : '↓') : ''}
+      Exit Time {visitSort.column === 'exitTime' ? (visitSort.direction === 'asc' ? '↑' : '↓') : ''}
     </TableHead>
 
     <TableHead
