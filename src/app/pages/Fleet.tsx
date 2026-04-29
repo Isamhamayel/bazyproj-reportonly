@@ -61,6 +61,7 @@ export function Fleet() {
   const [refreshProgress, setRefreshProgress] = useState(0);
   const [sortBy, setSortBy] = useState<"name" | "speed" | "lastUpdate">("name");
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
+  const [tableMaximized, setTableMaximized] = useState(false);
 
   // Refs to preserve scroll position
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -386,7 +387,8 @@ export function Fleet() {
   const disconnectedCount = devices.filter((d) => d.isDisconnected).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
+      {!tableMaximized && (
        <Card>
         <CardContent className="p-2">
           <div className="mb-2">
@@ -551,10 +553,41 @@ export function Fleet() {
           <RefreshCw className="w-5 h-5" />
           <span>Refresh Now</span>
         </Button>
+
+            <Button
+              onClick={() => setTableMaximized(true)}
+              variant="outline"
+              className="h-9 w-full"
+            >
+              Max Table
+            </Button>
           </div>
         </CardContent>
       </Card>
+      )}
 
+      {tableMaximized && (
+        <div className="flex items-center justify-between gap-2 rounded-xl border bg-white p-2 shadow-sm">
+          <div className="text-sm font-semibold">
+            Devices ({filteredDevices.length} of {devices.length})
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={handleManualRefresh} variant="outline" className="h-8 px-3 text-xs">
+              <RefreshCw className="w-4 h-4 mr-1" />
+              Refresh
+            </Button>
+            <Button onClick={exportToExcel} variant="outline" className="h-8 px-3 text-xs">
+              <Download className="w-4 h-4 mr-1" />
+              Export
+            </Button>
+            <Button onClick={() => setTableMaximized(false)} variant="outline" className="h-8 px-3 text-xs">
+              Show Filters
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {!tableMaximized && (
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
         <Card
           className={`cursor-pointer transition-all hover:shadow-lg ${
@@ -656,6 +689,7 @@ export function Fleet() {
           </CardContent>
         </Card>
       </div>
+      )}
 
       {loading ? (
         <Card>
@@ -828,14 +862,14 @@ export function Fleet() {
           ))}
         </div>
       ) : (
-        <Card>
-          <CardHeader>
+        <Card className={tableMaximized ? "h-[calc(100vh-72px)] overflow-hidden" : ""}>
+          <CardHeader className="py-2">
             <CardTitle className="text-sm font-semibold">
               Devices ({filteredDevices.length} of {devices.length})
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
+          <CardContent className="p-2">
+            <div className={tableMaximized ? "h-[calc(100vh-130px)] overflow-auto" : "overflow-x-auto"}>
               <Table className="text-xs">
                 <TableHeader>
                   <TableRow>
