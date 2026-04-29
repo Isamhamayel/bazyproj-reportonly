@@ -401,7 +401,7 @@ export function Fleet() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 mb-3">
             <Select value={ignitionFilter} onValueChange={setIgnitionFilter}>
               <SelectTrigger className="w-full">
                 <div className="flex items-center gap-1 truncate">
@@ -546,7 +546,7 @@ export function Fleet() {
           onClick={handleManualRefresh}
           variant="outline"
           size="lg"
-          className="flex items-center justify-center gap-2 w-full sm:w-auto"
+          className="h-10 w-full"
         >
           <RefreshCw className="w-5 h-5" />
           <span>Refresh Now</span>
