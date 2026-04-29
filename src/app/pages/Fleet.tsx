@@ -877,7 +877,7 @@ export function Fleet() {
                 </TableHeader>
                 <TableBody>
                   {filteredDevices.map((device) => (
-                    <TableRow key={device.id} className={`h-8 ${device.isDelayed ? "bg-red-50" : ""}`}>
+                    <TableRow   key={device.id}   className={`h-8 odd:bg-white even:bg-gray-50 hover:bg-blue-50 ${     device.isDelayed ? "border-l-4 border-red-500" : ""   }`} >
                       <TableCell className="max-w-[180px] whitespace-normal break-words px-2 py-1 text-xs font-medium leading-tight">
                         <div className="flex items-center gap-2">
                           {favorites.has(device.id) && (
