@@ -500,7 +500,7 @@ export default function TimelineReport() {
       <div className="mx-auto max-w-[1500px] space-y-4">
         <div className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100 sticky top-0 z-20">
          <div className="flex items-end gap-2 flex-wrap">
-            <div className="w-[320px] relative">
+            <div className="w-[340px] relative">
   <input
     type="text"
     placeholder="Search vehicle..."
