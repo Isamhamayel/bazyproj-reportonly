@@ -485,8 +485,8 @@ export default function TimelineReport() {
   const totalDuration = report?.blocks.reduce((sum, b) => sum + Math.max(1, b.durationSec), 0) || 0;
 
   return (
-   <div dir="rtl" className="h-screen overflow-hidden bg-[#f6f7fb] p-3 text-[#172033]">
-     <div className="mx-auto flex h-full max-w-[1500px] flex-col gap-3">
+    <div dir="rtl" className="min-h-screen bg-[#f6f7fb] p-4 text-[#172033]">
+      <div className="mx-auto max-w-[1500px] space-y-4">
         <div className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100 sticky top-0 z-20">
           <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
             <div className="md:col-span-2">
@@ -615,22 +615,22 @@ export default function TimelineReport() {
           )}
         </div>
 
-       <div className="min-h-0 flex-1 rounded-2xl bg-white p-3 shadow-sm border border-gray-100 overflow-auto">
+        <div className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100 overflow-auto">
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="bg-gray-100">
-                <th className="sticky top-0 z-10 border bg-gray-100 p-2 shadow-sm">#</th>
-                <th className="sticky top-0 z-10 border bg-gray-100 p-2 shadow-sm">اختيار</th>
-                <th className="sticky top-0 z-10 border bg-gray-100 p-2 shadow-sm">رمز</th>
-                <th className="sticky top-0 z-10 border bg-gray-100 p-2 shadow-sm">الحالة</th>
-                <th className="sticky top-0 z-10 border bg-gray-100 p-2 shadow-sm">بداية</th>
-                <th className="sticky top-0 z-10 border bg-gray-100 p-2 shadow-sm">نهاية</th>
-                <th className="sticky top-0 z-10 border bg-gray-100 p-2 shadow-sm">المدة</th>
-                <th className="sticky top-0 z-10 border bg-gray-100 p-2 shadow-sm">المسافة</th>
-                <th className="sticky top-0 z-10 border bg-gray-100 p-2 shadow-sm">متوسط السرعة</th>
-                <th className="sticky top-0 z-10 border bg-gray-100 p-2 shadow-sm">أقصى سرعة</th>
-                <th className="sticky top-0 z-10 border bg-gray-100 p-2 shadow-sm">الموقع</th>
-                <th className="sticky top-0 z-10 border bg-gray-100 p-2 shadow-sm">جيوفنس</th>
+                <th className="border p-2">#</th>
+                <th className="border p-2">اختيار</th>
+                <th className="border p-2">رمز</th>
+                <th className="border p-2">الحالة</th>
+                <th className="border p-2">بداية</th>
+                <th className="border p-2">نهاية</th>
+                <th className="border p-2">المدة</th>
+                <th className="border p-2">المسافة</th>
+                <th className="border p-2">متوسط السرعة</th>
+                <th className="border p-2">أقصى سرعة</th>
+                <th className="border p-2">الموقع</th>
+                <th className="border p-2">جيوفنس</th>
               </tr>
             </thead>
 
