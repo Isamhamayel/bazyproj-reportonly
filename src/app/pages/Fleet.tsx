@@ -704,180 +704,122 @@ export function Fleet() {
           </CardContent>
         </Card>
       ) : viewMode === "cards" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredDevices.map((device) => (
-            <Card
-              key={device.id}
-              className={`hover:shadow-lg transition-shadow ${
-                device.isDelayed ? "border-red-500 border-2" : ""
-              }`}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Car className="w-5 h-5" />
-                      {device.name}
-                      {device.isDelayed && <AlertTriangle className="w-4 h-4 text-red-500" />}
-                    </CardTitle>
-                  </div>
-                  <div className="flex items-center gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-2">
+          {filteredDevices.map((device) => {
+            const ignitionOn = device.positionData?.attributes.ignition === true;
+            const moving = ignitionOn && (device.positionData?.speed ?? 0) > 0;
+            const idle = ignitionOn && (device.positionData?.speed ?? 0) === 0;
+            const speedText = device.positionData ? `${device.positionData.speed.toFixed(0)} km/h` : "—";
+
+            return (
+              <Card
+                key={device.id}
+                className={`overflow-hidden border transition hover:shadow-md ${
+                  device.isDisconnected
+                    ? "border-gray-300 bg-gray-50"
+                    : device.isDelayed
+                    ? "border-r-4 border-r-red-500"
+                    : moving
+                    ? "border-r-4 border-r-green-500"
+                    : idle
+                    ? "border-r-4 border-r-yellow-500"
+                    : "border-r-4 border-r-gray-400"
+                }`}
+              >
+                <CardContent className="p-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <Car className="h-3.5 w-3.5 flex-shrink-0 text-gray-500" />
+                        <span className="truncate text-xs font-bold leading-tight" title={device.name}>
+                          {device.name}
+                        </span>
+                        {device.isDelayed && <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0 text-red-500" />}
+                      </div>
+                    </div>
+
                     <button
                       onClick={(e) => toggleFavorite(device.id, e)}
-                      className="p-1 hover:bg-gray-100 rounded transition-colors"
-                      title={
-                        favorites.has(device.id) ? "Remove from favorites" : "Add to favorites"
-                      }
+                      className="-mt-1 -me-1 rounded p-1 hover:bg-gray-100"
+                      title={favorites.has(device.id) ? "Remove from favorites" : "Add to favorites"}
                     >
                       <Star
-                        className={`w-5 h-5 ${
+                        className={`h-4 w-4 ${
                           favorites.has(device.id)
                             ? "fill-yellow-400 text-yellow-400"
                             : "text-gray-400"
                         }`}
                       />
                     </button>
-                    <div
-                      className={`px-2 py-1 rounded text-xs font-semibold ${
-                        device.positionData?.attributes.ignition
-                          ? device.positionData?.speed > 0
-                            ? "bg-green-100 text-green-700"
-                            : "bg-yellow-100 text-yellow-700"
+                  </div>
+
+                  <div className="mt-1 flex items-center justify-between gap-2">
+                    <span
+                      className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
+                        moving
+                          ? "bg-green-100 text-green-700"
+                          : idle
+                          ? "bg-yellow-100 text-yellow-700"
+                          : device.isDisconnected
+                          ? "bg-gray-200 text-gray-700"
                           : "bg-gray-100 text-gray-700"
                       }`}
                     >
-                      {device.positionData?.attributes.ignition
-                        ? device.positionData?.speed > 0
-                          ? "Moving"
-                          : "Idle"
-                        : "Off"}
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
+                      {moving ? "Moving" : idle ? "Idle" : "Off"}
+                    </span>
 
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                    <Gauge className="w-4 h-4 text-blue-600" />
-                    <div>
-                      <p className="text-xs text-gray-600">Speed</p>
-                      <p className="text-sm font-semibold">
-                        {device.positionData ? `${device.positionData.speed.toFixed(0)} km/h` : "—"}
-                      </p>
-                    </div>
+                    <span className="text-xs font-bold text-blue-700">{speedText}</span>
                   </div>
-                  <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                    <Key
-                      className={`w-4 h-4 ${
-                        device.positionData?.attributes.ignition
-                          ? "text-green-600"
-                          : "text-gray-400"
-                      }`}
-                    />
-                    <div>
-                      <p className="text-xs text-gray-600">Ignition</p>
-                      <p className="text-sm font-semibold">
-                        {device.positionData?.attributes.ignition ? "On" : "Off"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
 
-                {device.positionData?.attributes.totalDistance && (
-                  <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                    <Gauge className="w-4 h-4 text-purple-600" />
-                    <div>
-                      <p className="text-xs text-gray-600">Odometer</p>
-                      <p className="text-sm font-semibold">
-                        {(device.positionData.attributes.totalDistance / 1000).toFixed(2)} km
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-start gap-2 p-2 bg-gray-50 rounded">
-                  <MapPin className="w-4 h-4 text-red-600 mt-1 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-gray-600">Location</p>
-                    <p className="text-sm font-semibold truncate">
+                  <div className="mt-1 flex items-center gap-1 text-[11px] text-gray-600">
+                    <MapPin className="h-3 w-3 flex-shrink-0 text-red-500" />
+                    <span className="truncate" title={device.positionData?.address || "Unknown"}>
                       {device.positionData?.address || "Unknown"}
-                    </p>
+                    </span>
                   </div>
-                </div>
 
-                {device.positionData?.attributes.driverName && (
-                  <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                    <User className="w-4 h-4 text-indigo-600" />
-                    <div>
-                      <p className="text-xs text-gray-600">Driver</p>
-                      <p className="text-sm font-semibold">
-                        {device.positionData.attributes.driverName}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {device.positionData?.attributes.phone && (
-                  <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                    <Phone className="w-4 h-4 text-teal-600" />
-                    <div>
-                      <p className="text-xs text-gray-600">Phone</p>
-                      <p className="text-sm font-semibold">
-                        {device.positionData.attributes.phone}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <div
-                  className={`flex items-center gap-2 pt-2 border-t ${
-                    device.isDisconnected
-                      ? "text-gray-600"
-                      : device.isDelayed
-                      ? "text-red-600"
-                      : ""
-                  }`}
-                >
-                  <Calendar
-                    className={`w-4 h-4 ${
+                  <div
+                    className={`mt-1 flex items-center gap-1 text-[10px] ${
                       device.isDisconnected
-                        ? "text-gray-500"
+                        ? "text-gray-600"
                         : device.isDelayed
-                        ? "text-red-500"
-                        : "text-gray-400"
+                        ? "text-red-600"
+                        : "text-gray-500"
                     }`}
-                  />
-                  <p className="text-xs">
-                    Last update: {getLastUpdateText(device.lastUpdate)}
-                    {device.isDisconnected
-                      ? " (Disconnected)"
-                      : device.isDelayed
-                      ? " (Delayed)"
-                      : ""}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  >
+                    <Clock className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">
+                      {getLastUpdateText(device.lastUpdate)}
+                      {device.isDisconnected ? " · Disconnected" : device.isDelayed ? " · Delayed" : ""}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       ) : (
         <Card className={tableMaximized ? "h-[calc(100vh-72px)] overflow-hidden" : ""}>
           <CardContent className="p-2">
             <div className={tableMaximized ? "h-[calc(100vh-130px)] overflow-auto" : "overflow-x-auto"}>
-              <Table className="text-xs">
+              <Table className="text-[11px] leading-tight">
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className="h-6">
                     <TableHead className="sticky top-0 z-10 w-[220px] bg-white px-2 py-1 text-xs">Device Name</TableHead>
-                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-1 text-xs">Ignition</TableHead>
-                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-1 text-xs">Speed</TableHead>
-                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-1 text-xs">Location</TableHead>
-                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-1 text-xs">Last Update</TableHead>
+                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-[2px] text-[11px] leading-none">Ignition</TableHead>
+                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-[2px] text-[11px] leading-none">Speed</TableHead>
+                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-[2px] text-[11px] leading-none">Location</TableHead>
+                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-[2px] text-[11px] leading-none">Last Update</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredDevices.map((device) => (
-                    <TableRow   key={device.id}   className={`h-8 odd:bg-white even:bg-gray-50 hover:bg-blue-50 ${     device.isDelayed ? "border-l-4 border-red-500" : ""   }`} >
+                    <TableRow
+                      key={device.id}
+                      className={`h-8 odd:bg-white even:bg-gray-50 hover:bg-blue-50 ${
+                        device.isDelayed ? "border-r-4 border-red-500" : ""
+                      }`}
+                    >
                       <TableCell className="max-w-[180px] whitespace-normal break-words px-2 py-1 text-xs font-medium leading-tight">
                         <div className="flex items-center gap-2">
                           {favorites.has(device.id) && (
