@@ -704,7 +704,7 @@ export function Fleet() {
           </CardContent>
         </Card>
       ) : viewMode === "cards" ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           {filteredDevices.map((device) => {
             const ignitionOn = device.positionData?.attributes.ignition === true;
             const moving = ignitionOn && (device.positionData?.speed ?? 0) > 0;
