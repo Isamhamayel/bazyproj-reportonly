@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } اfrom "react";
 import { Search, FileSpreadsheet, MessageSquare, MapPin, PlusCircle } from "lucide-react";
 import * as XLSX from "xlsx";
 import { api } from "../services/api";
@@ -561,7 +561,7 @@ export default function TimelineReport() {
   </div>
 
   {/* From Time */}
-  <div className="w-[110px]">
+  <div className="w-[120px]">
     <label className="text-xs font-semibold">من وقت</label>
     <input
       type="time"
@@ -584,7 +584,7 @@ export default function TimelineReport() {
   </div>
 
   {/* To Time */}
-  <div className="w-[110px]">
+  <div className="w-[120px]">
     <label className="text-xs font-semibold">إلى وقت</label>
     <input
       type="time"
@@ -597,17 +597,17 @@ export default function TimelineReport() {
 
           <div className="flex flex-wrap gap-2 mt-4">
             <button onClick={generateReport} className="rounded-xl bg-blue-600 text-white px-4 py-2 flex gap-2 items-center">
-              <Search size={18} />
-              إنشاء التقرير
+              <Search size={16} />
+              إنشاء
             </button>
 
             <button onClick={prepareCheckedText} className="rounded-xl bg-slate-700 text-white px-4 py-2 flex gap-2 items-center">
-              <MessageSquare size={18} />
+              <MessageSquare size={16} />
               تحضير النص
             </button>
 
             <button onClick={exportExcel} className="rounded-xl bg-emerald-600 text-white px-4 py-2 flex gap-2 items-center">
-              <FileSpreadsheet size={18} />
+              <FileSpreadsheet size={16} />
               Excel
             </button>
           </div>
