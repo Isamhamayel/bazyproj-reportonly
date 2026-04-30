@@ -47,7 +47,10 @@ interface DeviceWithPosition extends Device {
   isDisconnected?: boolean; // For devices with no update > 60 min
 }
 
-export function Fleet() {
+import { Lang, t, isRTL } from "../i18n";
+
+export function Fleet({ lang }: { lang: Lang }) {
+  const tr = t[lang];
   const [devices, setDevices] = useState<DeviceWithPosition[]>([]);
   const [filteredDevices, setFilteredDevices] = useState<DeviceWithPosition[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -385,9 +388,8 @@ export function Fleet() {
   ).length;
   const delayedCount = devices.filter((d) => d.isDelayed && !d.isDisconnected).length;
   const disconnectedCount = devices.filter((d) => d.isDisconnected).length;
-
-  return (
-    <div className="space-y-2">
+ return (
+    <div dir={isRTL(lang) ? "rtl" : "ltr"}>
       {!tableMaximized && (
        <Card>
         <CardContent className="p-2">
@@ -805,10 +807,10 @@ export function Fleet() {
               <Table className="text-[11px] leading-tight">
                 <TableHeader>
                   <TableRow className="h-6">
-                    <TableHead className="sticky top-0 z-10 w-[220px] bg-white px-2 py-1 text-xs">Device Name</TableHead>
-                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-[2px] text-[11px] leading-none">Ignition</TableHead>
-                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-[2px] text-[11px] leading-none">Speed</TableHead>
-                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-[2px] text-[11px] leading-none">Location</TableHead>
+                    <TableHead className="sticky top-0 z-10 w-[220px] bg-white px-2 py-1 text-xs">tr.deviceName</TableHead>
+                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-[2px] text-[11px] leading-none">tr.ignition</TableHead>
+                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-[2px] text-[11px] leading-none">tr.speed</TableHead>
+                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-[2px] text-[11px] leading-none">tr.location</TableHead>
                     <TableHead className="sticky top-0 z-10 bg-white px-2 py-[2px] text-[11px] leading-none">Last Update</TableHead>
                   </TableRow>
                 </TableHeader>
