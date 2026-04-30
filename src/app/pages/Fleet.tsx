@@ -807,11 +807,11 @@ export function Fleet({ lang }: { lang: Lang }) {
               <Table className="text-[11px] leading-tight">
                 <TableHeader>
                   <TableRow className="h-6">
-                    <TableHead className="sticky top-0 z-10 w-[220px] bg-white px-2 py-1 text-xs">tr.deviceName</TableHead>
-                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-[2px] text-[11px] leading-none">tr.ignition</TableHead>
-                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-[2px] text-[11px] leading-none">tr.speed</TableHead>
-                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-[2px] text-[11px] leading-none">tr.location</TableHead>
-                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-[2px] text-[11px] leading-none">Last Update</TableHead>
+                    <TableHead className="sticky top-0 z-10 w-[220px] bg-white px-2 py-1 text-xs">{tr.deviceName}</TableHead>
+                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-[2px] text-[11px] leading-none">{tr.ignition}</TableHead>
+                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-[2px] text-[11px] leading-none">{tr.speed}</TableHead>
+                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-[2px] text-[11px] leading-none">{tr.location}</TableHead>
+                    <TableHead className="sticky top-0 z-10 bg-white px-2 py-[2px] text-[11px] leading-none">{tr.lastUpdate}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
