@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } اfrom "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, FileSpreadsheet, MessageSquare, MapPin, PlusCircle } from "lucide-react";
 import * as XLSX from "xlsx";
 import { api } from "../services/api";
