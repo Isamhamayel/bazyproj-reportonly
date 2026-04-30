@@ -79,15 +79,15 @@ export default function App() {
 
       <main className="min-h-0 flex-1 overflow-auto">
         <div className={page === "reports" ? "block h-full" : "hidden"}>
-          <Reports />
+          <Reports lang={lang} />
         </div>
 
         <div className={page === "timeline" ? "block h-full" : "hidden"}>
-          <TimelineReport />
+          <TimelineReport lang={lang} />
         </div>
 
         <div className={page === "live" ? "block h-full" : "hidden"}>
-          <Fleet />
+          <Fleet lang={lang} />
         </div>
       </main>
     </div>
