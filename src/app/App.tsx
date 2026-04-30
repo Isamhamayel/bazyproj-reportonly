@@ -41,9 +41,7 @@ export default function App() {
       className="h-screen flex flex-col bg-gray-50 overflow-hidden"
     >
       <header className="shrink-0 bg-white border-b px-3 py-2 flex items-center gap-2">
-        <div className="font-bold text-lg me-4">Bazytrack Go</div>
-
-        <button
+       <button
           type="button"
           onClick={() => setPage("reports")}
           className={tabClass("reports")}
