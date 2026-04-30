@@ -561,7 +561,7 @@ export default function TimelineReport() {
   </div>
 
   {/* From Time */}
-  <div className="w-[120px]">
+  <div className="w-[130px]">
     <label className="text-xs font-semibold">من وقت</label>
     <input
       type="time"
@@ -584,7 +584,7 @@ export default function TimelineReport() {
   </div>
 
   {/* To Time */}
-  <div className="w-[120px]">
+  <div className="w-[130px]">
     <label className="text-xs font-semibold">إلى وقت</label>
     <input
       type="time"
