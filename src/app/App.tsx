@@ -18,13 +18,13 @@ export default function App() {
       reports: "التقارير",
       timeline: "الخط الزمني",
       live: "المباشر",
-      lang: "English",
+      lang: "Eng",
     },
     en: {
       reports: "Reports",
       timeline: "Timeline",
       live: "Live",
-      lang: "العربية",
+      lang: "عربي",
     },
   };
 
@@ -46,7 +46,7 @@ export default function App() {
           onClick={() => setPage("reports")}
           className={tabClass("reports")}
         >
-          <BarChart3 size={15} />
+          <BarChart3 size={18} />
           {labels[lang].reports}
         </button>
 
@@ -55,7 +55,7 @@ export default function App() {
           onClick={() => setPage("timeline")}
           className={tabClass("timeline")}
         >
-          <Clock3 size={15} />
+          <Clock3 size={18} />
           {labels[lang].timeline}
         </button>
 
@@ -64,7 +64,7 @@ export default function App() {
           onClick={() => setPage("live")}
           className={tabClass("live")}
         >
-          <Radio size={15} />
+          <Radio size={18} />
           {labels[lang].live}
         </button>
 
