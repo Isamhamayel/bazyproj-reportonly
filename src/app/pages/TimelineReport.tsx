@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search, FileSpreadsheet, MessageSquare, MapPin, PlusCircle, X } from "lucide-react";
+import { Search, FileSpreadsheet, MessageSquare, MapPin, PlusCircle } from "lucide-react";
 import * as XLSX from "xlsx";
 import { api } from "../services/api";
 
@@ -465,159 +465,170 @@ export default function TimelineReport() {
     XLSX.writeFile(wb, `timeline_${selectedDeviceName || "report"}.xlsx`);
   }
 
+  async function createGeofence(block: TimelineBlock) {
+    if (block.lat == null || block.lon == null) {
+      setMessage("لا توجد إحداثيات لهذا البلوك");
+      return;
+    }
+
+    const name = window.prompt("اسم الجيوفنس", block.address ? `GF - ${block.address}` : "GF - Timeline");
+    if (!name) return;
+
+    const radiusText = window.prompt("نصف القطر بالمتر", "100");
+    const radius = Number(radiusText || 0);
+
+    if (!radius || radius <= 0) {
+      setMessage("نصف قطر غير صحيح");
+      return;
+    }
+
+    try {
+      await api.createGeofence({
+        name,
+        area: `CIRCLE (${block.lat} ${block.lon}, ${radius})`,
+        attributes: { color: "#0b57d0" },
+      });
+
+      setMessage("تم حفظ الجيوفنس بنجاح");
+    } catch (e: any) {
+      setMessage(e?.message || "فشل حفظ الجيوفنس");
+    }
+  }
+
+
   const totalDuration = report?.blocks.reduce((sum, b) => sum + Math.max(1, b.durationSec), 0) || 0;
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#f6f7fb] p-2 sm:p-4 text-[#172033]">
-     <div className="mx-auto max-w-[1500px] space-y-2 sm:space-y-3">
-        {/* Header Card - Sticky */}
-        <div className="rounded-lg sm:rounded-2xl bg-white p-3 sm:p-4 shadow-sm border border-gray-100 sticky top-0 z-20">
-         <div className="flex flex-col gap-2 sm:gap-3">
-            {/* Vehicle Search - Full width on mobile */}
-            <div className="w-full sm:w-[330px] relative">
-              <input
-                type="text"
-                placeholder="البحث عن مركبة..."
-                className="w-full rounded-lg sm:rounded-xl border px-3 py-2 bg-white text-sm"
-                value={deviceSearch}
-                onChange={(e) => {
-                  setDeviceSearch(e.target.value);
-                  setSelectedDeviceId("");
-                }}
-                onFocus={() => setDeviceDropdownOpen(true)}
-              />
+    <div dir="rtl" className="min-h-screen bg-[#f6f7fb] p-4 text-[#172033]">
+     <div className="mx-auto max-w-[1500px] space-y-2">
+        <div className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100 sticky top-0 z-20">
+         <div className="flex items-end gap-2 flex-wrap">
+            <div className="w-[330px] relative">
+  <input
+    type="text"
+    placeholder="Search vehicle..."
+    className="w-full rounded-xl border px-3 py-2 bg-white"
+    value={deviceSearch}
+    onChange={(e) => {
+      setDeviceSearch(e.target.value);
+      setSelectedDeviceId("");
+    }}
+    onFocus={() => setDeviceDropdownOpen(true)}
+  />
 
-              {deviceDropdownOpen && (
-                <div className="absolute z-50 mt-1 w-full rounded-lg sm:rounded-xl border bg-white shadow-lg max-h-56 overflow-auto">
-                  <div className="p-2 sticky top-0 bg-white border-b">
-                    <input
-                      type="text"
-                      placeholder="البحث عن مركبة..."
-                      className="w-full rounded-lg border px-3 py-2 text-sm"
-                      value={deviceSearch}
-                      onChange={(e) => setDeviceSearch(e.target.value)}
-                      autoFocus
-                    />
-                  </div>
+  {deviceDropdownOpen && (
+    <div className="absolute z-50 mt-1 w-full rounded-xl border bg-white shadow-lg">
+      <div className="p-2">
+        <input
+          type="text"
+          placeholder="Search vehicle..."
+          className="w-full rounded-lg border px-3 py-2"
+          value={deviceSearch}
+          onChange={(e) => setDeviceSearch(e.target.value)}
+          autoFocus
+        />
+      </div>
 
-                  <div>
-                    {filteredDevices.map((d) => (
-                      <button
-                        key={d.id}
-                        type="button"
-                        className="block w-full px-3 py-2 text-right hover:bg-gray-100 text-sm"
-                        onClick={() => {
-                          setSelectedDeviceId(String(d.id));
-                          setDeviceSearch(d.name);
-                          setDeviceDropdownOpen(false);
-                        }}
-                      >
-                        {d.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+      <div className="max-h-56 overflow-auto">
+        {filteredDevices.map((d) => (
+          <button
+            key={d.id}
+            type="button"
+            className="block w-full px-3 py-2 text-right hover:bg-gray-100"
+            onClick={() => {
+              setSelectedDeviceId(String(d.id));
+              setDeviceSearch(d.name);
+              setDeviceDropdownOpen(false);
+            }}
+          >
+            {d.name}
+          </button>
+        ))}
+      </div>
+    </div>
+  )}
+</div>
 
-            {/* Date/Time Inputs - Grid on mobile */}
-            <div className="grid grid-cols-2 sm:flex gap-2 sm:gap-3">
-              <div className="col-span-1">
-                <label className="text-xs font-semibold block mb-1">من تاريخ</label>
-                <input
-                  type="date"
-                  className="w-full rounded-lg border px-2 py-1.5 text-xs sm:text-sm"
-                  value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                />
-              </div>
+             {/* From Date */}
+  <div className="w-[140px]">
+    <label className="text-xs font-semibold">من تاريخ</label>
+    <input
+      type="date"
+      className="w-full rounded-lg border px-2 py-1 text-sm"
+      value={fromDate}
+      onChange={(e) => setFromDate(e.target.value)}
+    />
+  </div>
 
-              <div className="col-span-1">
-                <label className="text-xs font-semibold block mb-1">من وقت</label>
-                <input
-                  type="time"
-                  step="1"
-                  className="w-full rounded-lg border px-2 py-1.5 text-xs sm:text-sm"
-                  value={fromTime}
-                  onChange={(e) => setFromTime(e.target.value)}
-                />
-              </div>
+  {/* From Time */}
+  <div className="w-[130px]">
+    <label className="text-xs font-semibold">من وقت</label>
+    <input
+      type="time"
+      step="1"
+      className="w-full rounded-lg border px-2 py-1 text-sm"
+      value={fromTime}
+      onChange={(e) => setFromTime(e.target.value)}
+    />
+  </div>
 
-              <div className="col-span-1">
-                <label className="text-xs font-semibold block mb-1">إلى تاريخ</label>
-                <input
-                  type="date"
-                  className="w-full rounded-lg border px-2 py-1.5 text-xs sm:text-sm"
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                />
-              </div>
+  {/* To Date */}
+  <div className="w-[140px]">
+    <label className="text-xs font-semibold">إلى تاريخ</label>
+    <input
+      type="date"
+      className="w-full rounded-lg border px-2 py-1 text-sm"
+      value={toDate}
+      onChange={(e) => setToDate(e.target.value)}
+    />
+  </div>
 
-              <div className="col-span-1">
-                <label className="text-xs font-semibold block mb-1">إلى وقت</label>
-                <input
-                  type="time"
-                  step="1"
-                  className="w-full rounded-lg border px-2 py-1.5 text-xs sm:text-sm"
-                  value={toTime}
-                  onChange={(e) => setToTime(e.target.value)}
-                />
-              </div>
-            </div>
+  {/* To Time */}
+  <div className="w-[130px]">
+    <label className="text-xs font-semibold">إلى وقت</label>
+    <input
+      type="time"
+      step="1"
+      className="w-full rounded-lg border px-2 py-1 text-sm"
+      value={toTime}
+      onChange={(e) => setToTime(e.target.value)}
+    />
+  </div>
 
-            {/* Action Buttons - Stack on mobile */}
-            <div className="flex flex-col sm:flex-row gap-2 mt-2">
-              <button 
-                onClick={generateReport} 
-                className="rounded-lg sm:rounded-xl bg-blue-600 text-white px-3 sm:px-4 py-2 flex gap-2 items-center justify-center text-sm sm:text-base flex-1 sm:flex-none"
-              >
-                <Search size={16} />
-                <span>إنشاء</span>
-              </button>
+          <div className="flex flex-wrap gap-2 mt-4">
+            <button onClick={generateReport} className="rounded-xl bg-blue-600 text-white px-4 py-2 flex gap-2 items-center">
+              <Search size={16} />
+              إنشاء
+            </button>
 
-              <button 
-                onClick={prepareCheckedText} 
-                className="rounded-lg sm:rounded-xl bg-slate-700 text-white px-3 sm:px-4 py-2 flex gap-2 items-center justify-center text-sm sm:text-base flex-1 sm:flex-none"
-              >
-                <MessageSquare size={16} />
-                <span className="hidden sm:inline">تحضير النص</span>
-                <span className="sm:hidden">نص</span>
-              </button>
+            <button onClick={prepareCheckedText} className="rounded-xl bg-slate-700 text-white px-4 py-2 flex gap-2 items-center">
+              <MessageSquare size={16} />
+              تحضير النص
+            </button>
 
-              <button 
-                onClick={exportExcel} 
-                className="rounded-lg sm:rounded-xl bg-emerald-600 text-white px-3 sm:px-4 py-2 flex gap-2 items-center justify-center text-sm sm:text-base flex-1 sm:flex-none"
-              >
-                <FileSpreadsheet size={16} />
-                <span>Excel</span>
-              </button>
-            </div>
+            <button onClick={exportExcel} className="rounded-xl bg-emerald-600 text-white px-4 py-2 flex gap-2 items-center">
+              <FileSpreadsheet size={16} />
+              Excel
+            </button>
+          </div>
           </div>
 
-          {/* Summary Stats */}
           {report && (
-            <div className="mt-3 rounded-lg sm:rounded-xl bg-gray-50 border p-2 text-xs sm:text-sm font-semibold leading-relaxed">
-              <div className="space-y-1">
-                <div><span className="text-gray-600">المركبة:</span> {report.summary.selectedDeviceName || "-"}</div>
-                <div><span className="text-gray-600">الفترة:</span> {report.summary.from} → {report.summary.to}</div>
-                <div className="grid grid-cols-2 gap-2 mt-2 text-xs">
-                  <div><span className="text-gray-600">الإيقاف:</span> {report.summary.offDuration}</div>
-                  <div><span className="text-gray-600">الحركة:</span> {report.summary.movingDuration}</div>
-                  <div><span className="text-gray-600">التوقف:</span> {report.summary.idleDuration}</div>
-                  <div><span className="text-gray-600">المسافة:</span> {report.summary.movingDistance} كم</div>
-                </div>
-              </div>
+            <div className="mt-2 rounded-xl bg-gray-50 border p-2 text-xs font-semibold leading-6">
+              المركبة: {report.summary.selectedDeviceName || "-"} | من: {report.summary.from} | إلى:{" "}
+              {report.summary.to} | الإيقاف: {report.summary.offDuration} | الحركة:{" "}
+              {report.summary.movingDuration} | التوقف: {report.summary.idleDuration} | المسافة:{" "}
+              {report.summary.movingDistance} كم
             </div>
           )}
 
-          {loading && <div className="mt-2 text-blue-600 font-semibold text-sm">جاري التنفيذ...</div>}
-          {message && <div className="mt-2 text-sm font-semibold text-orange-600">{message}</div>}
+          {loading && <div className="mt-3 text-blue-600 font-semibold">جاري التنفيذ...</div>}
+          {message && <div className="mt-3 text-sm font-semibold">{message}</div>}
         </div>
 
-        {/* Timeline Visualization */}
-        <div className="rounded-lg sm:rounded-2xl bg-white p-3 sm:p-4 shadow-sm border border-gray-100">
+        <div className="rounded-2xl bg-white p-3 shadow-sm border border-gray-100">
           {!report?.blocks?.length ? (
-            <div className="text-gray-500 text-sm sm:text-base">لا توجد بيانات بعد.</div>
+            <div className="text-gray-500">لا توجد بيانات بعد.</div>
           ) : (
             <>
               <div className="flex h-6 overflow-hidden rounded-lg border bg-gray-50">
@@ -631,7 +642,7 @@ export default function TimelineReport() {
                         flex: `0 0 ${width}%`,
                         background: statusColor(b.status),
                       }}
-                      className="border-l border-white hover:opacity-80 transition-opacity"
+                      className="border-l border-white hover:opacity-80"
                       onClick={() => document.getElementById(`timeline-row-${i}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}
                     />
                   );
@@ -639,11 +650,11 @@ export default function TimelineReport() {
               </div>
 
               <div className="flex justify-between mt-2 text-xs text-gray-500">
-                <span className="truncate">{report.blocks[0]?.startText}</span>
-                <span className="truncate">{report.blocks[report.blocks.length - 1]?.endText}</span>
+                <span>{report.blocks[0]?.startText}</span>
+                <span>{report.blocks[report.blocks.length - 1]?.endText}</span>
               </div>
 
-              <div className="flex flex-wrap gap-2 sm:gap-4 mt-3 text-xs sm:text-sm">
+              <div className="flex flex-wrap gap-4 mt-3 text-sm">
                 <span>🟢 حركة</span>
                 <span>🟡 توقف</span>
                 <span>⚫️ إيقاف</span>
@@ -653,257 +664,155 @@ export default function TimelineReport() {
           )}
         </div>
 
-        {/* Table - Mobile Card View on Small Screens */}
-        <div className="rounded-lg sm:rounded-2xl bg-white shadow-sm border border-gray-100 overflow-hidden">
-          {/* Desktop Table */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full border-collapse text-sm">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border p-2 text-right">#</th>
-                  <th className="border p-2 text-center">✓</th>
-                  <th className="border p-2 text-right">رمز</th>
-                  <th className="border p-2 text-right">الحالة</th>
-                  <th className="border p-2 text-right">بداية</th>
-                  <th className="border p-2 text-right">نهاية</th>
-                  <th className="border p-2 text-right">المدة</th>
-                  <th className="border p-2 text-right">المسافة</th>
-                  <th className="border p-2 text-right">متوسط</th>
-                  <th className="border p-2 text-right">أقصى</th>
-                  <th className="border p-2 text-right">الموقع</th>
-                  <th className="border p-2 text-right">جيوفنس</th>
+        <div className="rounded-2xl bg-white p-4 shadow-sm border border-gray-100 overflow-auto">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="border p-2">#</th>
+                <th className="border p-2">اختيار</th>
+                <th className="border p-2">رمز</th>
+                <th className="border p-2">الحالة</th>
+                <th className="border p-2">بداية</th>
+                <th className="border p-2">نهاية</th>
+                <th className="border p-2">المدة</th>
+                <th className="border p-2">المسافة</th>
+                <th className="border p-2">متوسط السرعة</th>
+                <th className="border p-2">أقصى سرعة</th>
+                <th className="border p-2">الموقع</th>
+                <th className="border p-2">جيوفنس</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {!report?.blocks?.length && (
+                <tr>
+                  <td colSpan={12} className="border p-4 text-center text-gray-500">
+                    لا توجد بيانات.
+                  </td>
                 </tr>
-              </thead>
+              )}
 
-              <tbody>
-                {!report?.blocks?.length && (
-                  <tr>
-                    <td colSpan={12} className="border p-4 text-center text-gray-500">
-                      لا توجد بيانات.
-                    </td>
-                  </tr>
-                )}
-
-                {report?.blocks.map((b, i) => (
-                  <tr key={i} id={`timeline-row-${i}`} style={{ background: statusColor(b.status) }}>
-                    <td className="border p-2 text-right">{i + 1}</td>
-                    <td className="border p-2 text-center">
-                      <input
-                        type="checkbox"
-                        checked={!!checkedRows[i]}
-                        onChange={(e) => setCheckedRows((old) => ({ ...old, [i]: e.target.checked }))}
-                      />
-                    </td>
-                    <td className="border p-2 text-right">{b.icon}</td>
-                    <td className="border p-2 font-semibold text-right">{b.status}</td>
-                    <td className="border p-2 text-sm text-right">{b.startTimeOnly}</td>
-                    <td className="border p-2 text-sm text-right">{b.endTimeOnly}</td>
-                    <td className="border p-2 text-right">{b.durationText}</td>
-                    <td className="border p-2 text-right">{b.distance}</td>
-                    <td className="border p-2 text-right">{b.avgSpeed}</td>
-                    <td className="border p-2 text-right">{b.maxSpeed}</td>
-                    <td className="border p-2 text-right">
-                      {b.lat != null && b.lon != null ? (
-                        <a
-                          href={`https://www.google.com/maps?q=${b.lat},${b.lon}&t=k`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-blue-700 underline text-xs"
-                        >
-                          <MapPin size={14} className="inline" />
-                        </a>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                    <td className="border p-2 text-center">
-                      <button
-                        onClick={() => {
-                          setGfModal(b);
-                          setGfName(b.address ? `GF - ${b.address}` : "GF - Timeline");
-                          setGfRadius(100);
-                          setGfColor("#0b57d0");
-                        }}
-                        className="text-blue-600 hover:text-blue-800"
+              {report?.blocks.map((b, i) => (
+                <tr key={i} id={`timeline-row-${i}`} style={{ background: statusColor(b.status) }}>
+                  <td className="border p-2">{i + 1}</td>
+                  <td className="border p-2 text-center">
+                    <input
+                      type="checkbox"
+                      checked={!!checkedRows[i]}
+                      onChange={(e) => setCheckedRows((old) => ({ ...old, [i]: e.target.checked }))}
+                    />
+                  </td>
+                  <td className="border p-2">{b.icon}</td>
+                  <td className="border p-2 font-semibold">{b.status}</td>
+                  <td className="border p-2">{b.startText}</td>
+                  <td className="border p-2">{b.endText}</td>
+                  <td className="border p-2">{b.durationText}</td>
+                  <td className="border p-2">{b.distance}</td>
+                  <td className="border p-2">{b.avgSpeed}</td>
+                  <td className="border p-2">{b.maxSpeed}</td>
+                  <td className="border p-2">
+                    {b.lat != null && b.lon != null ? (
+                      <a
+                        href={`https://www.google.com/maps?q=${b.lat},${b.lon}&t=k`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-blue-700 underline inline-flex gap-1 items-center"
                       >
-                        <PlusCircle size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile Card View */}
-          <div className="md:hidden p-3 space-y-3">
-            {!report?.blocks?.length ? (
-              <div className="text-center text-gray-500 py-4">لا توجد بيانات.</div>
-            ) : (
-              report?.blocks.map((b, i) => (
-                <div
-                  key={i}
-                  id={`timeline-row-${i}`}
-                  style={{ background: statusColor(b.status) }}
-                  className="border rounded-lg p-3 space-y-2"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={!!checkedRows[i]}
-                        onChange={(e) => setCheckedRows((old) => ({ ...old, [i]: e.target.checked }))}
-                      />
-                      <span className="text-xl">{b.icon}</span>
-                      <span className="font-bold text-sm">{b.status}</span>
-                    </div>
-                    <span className="text-xs text-gray-600">#{i + 1}</span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <span className="text-gray-600">البداية:</span>
-                      <div className="font-semibold">{b.startTimeOnly}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">النهاية:</span>
-                      <div className="font-semibold">{b.endTimeOnly}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">المدة:</span>
-                      <div className="font-semibold">{b.durationText}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">المسافة:</span>
-                      <div className="font-semibold">{b.distance} كم</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">متوسط:</span>
-                      <div className="font-semibold">{b.avgSpeed}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">أقصى:</span>
-                      <div className="font-semibold">{b.maxSpeed}</div>
-                    </div>
-                  </div>
-
-                  {b.address && (
-                    <div className="text-xs pt-2 border-t">
-                      <span className="text-gray-600">الموقع:</span>
-                      <div className="flex items-center gap-1 mt-1">
-                        {b.lat != null && b.lon != null ? (
-                          <a
-                            href={`https://www.google.com/maps?q=${b.lat},${b.lon}&t=k`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-blue-600 underline flex items-center gap-1 flex-1"
-                          >
-                            <MapPin size={14} />
-                            {b.address}
-                          </a>
-                        ) : (
-                          <span>{b.address}</span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex gap-2 pt-2 border-t">
+                        <MapPin size={15} />
+                        {b.address || "عرض الموقع"}
+                      </a>
+                    ) : (
+                      b.address || "-"
+                    )}
+                  </td>
+                  <td className="border p-2">
                     <button
                       onClick={() => {
-                        setGfModal(b);
-                        setGfName(b.address ? `GF - ${b.address}` : "GF - Timeline");
-                        setGfRadius(100);
-                        setGfColor("#0b57d0");
-                      }}
-                      className="flex-1 bg-blue-600 text-white py-2 rounded text-xs font-semibold flex items-center justify-center gap-1"
+  setGfModal(b);
+  setGfName(b.address ? `GF - ${b.address}` : "GF - Timeline");
+  setGfRadius(100);
+  setGfColor("#0b57d0");
+}}
                     >
-                      <PlusCircle size={14} />
-                      جيوفنس
+                      <PlusCircle size={15} />
+                      إضافة
                     </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
-        {/* Text Output */}
-        <div className="rounded-lg sm:rounded-2xl bg-white p-3 sm:p-4 shadow-sm border border-gray-100">
-          <h2 className="font-bold mb-2 text-sm sm:text-base">النص الناتج</h2>
+        <div className="rounded-2xl bg-white p-3 shadow-sm border border-gray-100">
+          <h2 className="font-bold mb-2">النص الناتج من الصفوف المحددة</h2>
           <textarea
-            className="w-full min-h-[120px] sm:min-h-[150px] rounded-lg border p-2 sm:p-3 text-xs sm:text-sm"
+            className="w-full min-h-[150px] rounded-xl border p-3"
             readOnly
             value={checkedText}
           />
         </div>
       </div>
+          {/* ⬇️ ADD MODAL HERE ⬇️ */}
+    {gfModal && (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-white p-4 rounded-xl w-[400px] space-y-3">
+          <h3 className="font-bold text-lg">إضافة جيوفنس</h3>
+          <input
+  className="w-full border rounded p-2"
+  value={gfName}
+  onChange={(e) => setGfName(e.target.value)}
+  placeholder="اسم الجيوفنس"
+/>
 
-      {/* Geofence Modal */}
-      {gfModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-4 rounded-lg sm:rounded-xl w-full max-w-[400px] space-y-3">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="font-bold text-lg">إضافة جيوفنس</h3>
-              <button
-                onClick={() => setGfModal(null)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X size={20} />
-              </button>
-            </div>
+<input
+  type="number"
+  className="w-full border rounded p-2"
+  value={gfRadius}
+  onChange={(e) => setGfRadius(Number(e.target.value))}
+  placeholder="نصف القطر بالمتر"
+/>
 
-            <input
-              className="w-full border rounded-lg p-2 text-sm"
-              value={gfName}
-              onChange={(e) => setGfName(e.target.value)}
-              placeholder="اسم الجيوفنس"
-            />
+<select
+  className="w-full border rounded p-2"
+  value={gfColor}
+  onChange={(e) => setGfColor(e.target.value)}
+>
+  <option value="#0b57d0">أزرق</option>
+  <option value="#198754">أخضر</option>
+  <option value="#ff0000">أحمر</option>
+</select>
 
-            <input
-              type="number"
-              className="w-full border rounded-lg p-2 text-sm"
-              value={gfRadius}
-              onChange={(e) => setGfRadius(Number(e.target.value))}
-              placeholder="نصف القطر بالمتر"
-            />
+          
 
-            <select
-              className="w-full border rounded-lg p-2 text-sm"
-              value={gfColor}
-              onChange={(e) => setGfColor(e.target.value)}
+       
+
+          <div className="flex gap-2">
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded"
+              onClick={async () => {
+                await api.createGeofence({
+                  name: gfName,
+                  area: `CIRCLE (${gfModal.lat} ${gfModal.lon}, ${gfRadius})`,
+                  attributes: { color: gfColor },
+                });
+                setGfModal(null);
+              }}
             >
-              <option value="#0b57d0">أزرق</option>
-              <option value="#198754">أخضر</option>
-              <option value="#ff0000">أحمر</option>
-            </select>
+              حفظ
+            </button>
 
-            <div className="flex gap-2 pt-2">
-              <button
-                className="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg font-semibold text-sm"
-                onClick={async () => {
-                  await api.createGeofence({
-                    name: gfName,
-                    area: `CIRCLE (${gfModal.lat} ${gfModal.lon}, ${gfRadius})`,
-                    attributes: { color: gfColor },
-                  });
-                  setGfModal(null);
-                  setMessage("تم حفظ الجيوفنس بنجاح");
-                }}
-              >
-                حفظ
-              </button>
-
-              <button
-                className="flex-1 bg-gray-300 px-3 py-2 rounded-lg font-semibold text-sm"
-                onClick={() => setGfModal(null)}
-              >
-                إلغاء
-              </button>
-            </div>
+            <button
+              className="bg-gray-300 px-4 py-2 rounded"
+              onClick={() => setGfModal(null)}
+            >
+              إلغاء
+            </button>
           </div>
         </div>
-      )}
+      </div>
+    )}
+    {/* ⬆️ END MODAL ⬆️ */}
     </div>
   );
 }
