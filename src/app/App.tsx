@@ -46,7 +46,7 @@ export default function App() {
           onClick={() => setPage("reports")}
           className={tabClass("reports")}
         >
-          <BarChart3 size={18} />
+          <BarChart3 size={15} />
           {labels[lang].reports}
         </button>
 
@@ -55,7 +55,7 @@ export default function App() {
           onClick={() => setPage("timeline")}
           className={tabClass("timeline")}
         >
-          <Clock3 size={18} />
+          <Clock3 size={15} />
           {labels[lang].timeline}
         </button>
 
@@ -64,7 +64,7 @@ export default function App() {
           onClick={() => setPage("live")}
           className={tabClass("live")}
         >
-          <Radio size={18} />
+          <Radio size={15} />
           {labels[lang].live}
         </button>
 
