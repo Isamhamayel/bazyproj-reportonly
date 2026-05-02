@@ -174,12 +174,13 @@ export default function TimelineIdleReport({ lang = "ar" }: { lang?: "ar" | "en"
   const [to, setTo] = useState(defaultDateRange.to);
   const [minIdleMinutes, setMinIdleMinutes] = useState(10);
   const [vehicles, setVehicles] = useState<Device[]>([]);
+  const [deviceSearch, setDeviceSearch] = useState("");
   const [selectedVehicleId, setSelectedVehicleId] = useState("all");
+  const [deviceDropdownOpen, setDeviceDropdownOpen] = useState(false);
   const [rows, setRows] = useState<TimelineRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingVehicles, setLoadingVehicles] = useState(false);
   const [message, setMessage] = useState("");
-  const [vehicleSearch, setVehicleSearch] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig | null>({
     key: "startTime",
     direction: "asc",
@@ -210,13 +211,26 @@ export default function TimelineIdleReport({ lang = "ar" }: { lang?: "ar" | "en"
     };
   }, [isArabic]);
 
+  const filteredVehicles = useMemo(
+    () =>
+      vehicles.filter((vehicle) =>
+        (vehicle.name || `Vehicle ${vehicle.id}`)
+          .toLowerCase()
+          .includes(deviceSearch.toLowerCase())
+      ),
+    [vehicles, deviceSearch]
+  );
+
+  const selectedVehicleName = useMemo(() => {
+    if (selectedVehicleId === "all") return isArabic ? "كل المركبات" : "All vehicles";
+    return (
+      vehicles.find((vehicle) => String(vehicle.id) === selectedVehicleId)?.name ||
+      ""
+    );
+  }, [vehicles, selectedVehicleId, isArabic]);
+
   const sortedRows = useMemo(() => sortRows(rows, sortConfig), [rows, sortConfig]);
 
-  const filteredVehicles = vehicles.filter((vehicle) =>
-  (vehicle.name || "")
-    .toLowerCase()
-    .includes(vehicleSearch.toLowerCase())
-);
   async function generateReport() {
     if (!from || !to) {
       setMessage(isArabic ? "الرجاء تحديد التاريخ" : "Please select dates");
@@ -385,21 +399,71 @@ export default function TimelineIdleReport({ lang = "ar" }: { lang?: "ar" | "en"
           />
         </label>
 
-        <label className="space-y-1">
+        <label className="space-y-1 relative">
           <div>{isArabic ? "المركبة" : "Vehicle"}</div>
-          <select
-            value={selectedVehicleId}
-            onChange={(e) => setSelectedVehicleId(e.target.value)}
+          <input
+            type="text"
+            value={deviceDropdownOpen ? deviceSearch : selectedVehicleName}
+            onChange={(e) => {
+              setDeviceSearch(e.target.value);
+              setSelectedVehicleId("all");
+              setDeviceDropdownOpen(true);
+            }}
+            onFocus={() => {
+              setDeviceSearch("");
+              setDeviceDropdownOpen(true);
+            }}
             disabled={loadingVehicles || loading}
-            className="border rounded-lg px-3 py-2 min-w-56 bg-white"
-          >
-            <option value="all">{isArabic ? "كل المركبات" : "All vehicles"}</option>
-            {vehicles.map((vehicle) => (
-              <option key={vehicle.id} value={String(vehicle.id)}>
-                {vehicle.name || `Vehicle ${vehicle.id}`}
-              </option>
-            ))}
-          </select>
+            placeholder={
+              loadingVehicles
+                ? isArabic
+                  ? "جاري تحميل المركبات..."
+                  : "Loading vehicles..."
+                : isArabic
+                ? "ابحث عن مركبة..."
+                : "Search vehicle..."
+            }
+            className="border rounded-lg px-3 py-2 min-w-64 bg-white"
+          />
+
+          {deviceDropdownOpen && !loadingVehicles && !loading && (
+            <div className="absolute z-20 mt-1 max-h-64 min-w-64 overflow-auto rounded-lg border bg-white shadow-lg">
+              <button
+                type="button"
+                className="block w-full px-3 py-2 text-start hover:bg-gray-100"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  setSelectedVehicleId("all");
+                  setDeviceSearch("");
+                  setDeviceDropdownOpen(false);
+                }}
+              >
+                {isArabic ? "كل المركبات" : "All vehicles"}
+              </button>
+
+              {filteredVehicles.map((vehicle) => (
+                <button
+                  key={vehicle.id}
+                  type="button"
+                  className="block w-full px-3 py-2 text-start hover:bg-gray-100"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setSelectedVehicleId(String(vehicle.id));
+                    setDeviceSearch(vehicle.name || `Vehicle ${vehicle.id}`);
+                    setDeviceDropdownOpen(false);
+                  }}
+                >
+                  {vehicle.name || `Vehicle ${vehicle.id}`}
+                </button>
+              ))}
+
+              {!filteredVehicles.length && (
+                <div className="px-3 py-2 text-gray-500">
+                  {isArabic ? "لا توجد مركبات مطابقة" : "No matching vehicles"}
+                </div>
+              )}
+            </div>
+          )}
         </label>
 
         <label className="space-y-1">
