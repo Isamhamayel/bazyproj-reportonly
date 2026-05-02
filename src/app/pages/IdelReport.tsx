@@ -1,16 +1,10 @@
 import { useState } from "react";
 import * as XLSX from "xlsx";
-
-const BASE_URL = "https://go.bazytrack.jo/api";
+import { api } from "../services/api";
 
 type Device = {
   id: number;
   name?: string;
-};
-
-type IdleReportProps = {
-  apiKey: string;
-  lang?: "ar" | "en";
 };
 
 type IdleRow = {
@@ -45,31 +39,35 @@ function formatDateOnly(value: string) {
   return formatAmmanDateTime(value).slice(0, 10);
 }
 
-export default function IdleReport({ apiKey, lang = "ar" }: IdleReportProps) {
-  const isArabic = lang === "ar";
+// Get session from localStorage
+const getSession = () => {
+  const stored = localStorage.getItem("traccar_session");
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
 
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
-  const [minIdleMinutes, setMinIdleMinutes] = useState(10);
-  const [rows, setRows] = useState<IdleRow[]>([]);
-  const [loading, setLoading] = useState(false);
+// Fetch idle trips with custom key
+const fetchIdleTrips = async (
+  deviceId: number,
+  fromISO: string,
+  toISO: string
+): Promise<any[]> => {
+  const session = getSession();
 
-  async function fetchDevices(): Promise<Device[]> {
-    const response = await fetch(`${BASE_URL}/devices`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    const data = await response.json();
-    return Array.isArray(data.devices) ? data.devices : data;
+  if (!session || !session.token || !session.serverUrl) {
+    console.debug("No valid session found");
+    return [];
   }
 
-  async function fetchIdleTrips(deviceId: number, fromISO: string, toISO: string) {
+  try {
     const url =
-      `${BASE_URL}/reports/trips/customkey` +
+      `${session.serverUrl}/api/reports/trips/customkey` +
       `?deviceId=${deviceId}` +
       `&from=${encodeURIComponent(fromISO)}` +
       `&to=${encodeURIComponent(toISO)}` +
@@ -78,26 +76,57 @@ export default function IdleReport({ apiKey, lang = "ar" }: IdleReportProps) {
     const response = await fetch(url, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${session.token}`,
         "Content-Type": "application/json",
       },
+      mode: "cors",
     });
+
+    if (!response.ok) {
+      console.warn(`API Error: ${response.status} ${response.statusText}`);
+      return [];
+    }
 
     const data = await response.json();
     return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error("Failed to fetch idle trips:", error);
+    return [];
   }
+};
+
+export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
+  const isArabic = lang === "ar";
+
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [minIdleMinutes, setMinIdleMinutes] = useState(10);
+  const [rows, setRows] = useState<IdleRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
   async function generateReport() {
-    if (!from || !to || !apiKey) return;
+    if (!from || !to) {
+      setMessage(isArabic ? "الرجاء تحديد التاريخ" : "Please select dates");
+      return;
+    }
 
     setLoading(true);
+    setMessage("");
     setRows([]);
 
     try {
       const fromISO = new Date(from).toISOString();
       const toISO = new Date(to).toISOString();
 
-      const vehicles = await fetchDevices();
+      const vehicles = await api.getDevices();
+      if (!vehicles || vehicles.length === 0) {
+        setMessage(
+          isArabic ? "لم يتم العثور على مركبات" : "No vehicles found"
+        );
+        return;
+      }
+
       const reportRows: IdleRow[] = [];
 
       for (const vehicle of vehicles) {
@@ -136,14 +165,29 @@ export default function IdleReport({ apiKey, lang = "ar" }: IdleReportProps) {
       }
 
       setRows(reportRows);
+      setMessage(
+        isArabic
+          ? `تم العثور على ${reportRows.length} سجل`
+          : `Found ${reportRows.length} records`
+      );
     } catch (error) {
       console.error("Idle report error:", error);
+      setMessage(
+        isArabic ? "حدث خطأ في التقرير" : "An error occurred generating the report"
+      );
     } finally {
       setLoading(false);
     }
   }
 
   function exportExcel() {
+    if (!rows.length) {
+      setMessage(
+        isArabic ? "لا توجد بيانات للتصدير" : "No data to export"
+      );
+      return;
+    }
+
     const exportRows = rows.map((row) => ({
       Date: row.date,
       "Vehicle ID": row.vehicleId,
@@ -160,7 +204,12 @@ export default function IdleReport({ apiKey, lang = "ar" }: IdleReportProps) {
     const workbook = XLSX.utils.book_new();
 
     XLSX.utils.book_append_sheet(workbook, worksheet, "Idle Report");
-    XLSX.writeFile(workbook, "idle-report.xlsx");
+    XLSX.writeFile(
+      workbook,
+      `idle-report_${new Date().toISOString().split("T")[0]}.xlsx`
+    );
+
+    setMessage(isArabic ? "تم التصدير بنجاح" : "Export successful");
   }
 
   return (
@@ -191,7 +240,9 @@ export default function IdleReport({ apiKey, lang = "ar" }: IdleReportProps) {
         </label>
 
         <label className="space-y-1">
-          <div>{isArabic ? "أقل مدة خمول بالدقائق" : "Min idle minutes"}</div>
+          <div>
+            {isArabic ? "أقل مدة خمول بالدقائق" : "Min idle minutes"}
+          </div>
           <input
             type="number"
             value={minIdleMinutes}
@@ -210,8 +261,8 @@ export default function IdleReport({ apiKey, lang = "ar" }: IdleReportProps) {
               ? "جاري التحميل..."
               : "Loading..."
             : isArabic
-              ? "تشغيل التقرير"
-              : "Run Report"}
+            ? "تشغيل التقرير"
+            : "Run Report"}
         </button>
 
         <button
@@ -223,19 +274,39 @@ export default function IdleReport({ apiKey, lang = "ar" }: IdleReportProps) {
         </button>
       </div>
 
+      {message && (
+        <div
+          className={`p-3 rounded-lg text-sm ${
+            message.includes("خطأ") || message.includes("error")
+              ? "bg-red-50 text-red-700"
+              : "bg-blue-50 text-blue-700"
+          }`}
+        >
+          {message}
+        </div>
+      )}
+
       <div className="bg-white rounded-xl border overflow-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50">
             <tr>
-              <th className="p-2">Date</th>
-              <th className="p-2">Vehicle ID</th>
-              <th className="p-2">Vehicle Name</th>
-              <th className="p-2">Duration (m)</th>
-              <th className="p-2">Start Time</th>
-              <th className="p-2">Start Address</th>
-              <th className="p-2">Map</th>
-              <th className="p-2">End Time</th>
-              <th className="p-2">End Address</th>
+              <th className="p-2">{isArabic ? "التاريخ" : "Date"}</th>
+              <th className="p-2">
+                {isArabic ? "معرف المركبة" : "Vehicle ID"}
+              </th>
+              <th className="p-2">
+                {isArabic ? "اسم المركبة" : "Vehicle Name"}
+              </th>
+              <th className="p-2">{isArabic ? "المدة (د)" : "Duration (m)"}</th>
+              <th className="p-2">{isArabic ? "وقت البداية" : "Start Time"}</th>
+              <th className="p-2">
+                {isArabic ? "عنوان البداية" : "Start Address"}
+              </th>
+              <th className="p-2">{isArabic ? "الخريطة" : "Map"}</th>
+              <th className="p-2">{isArabic ? "وقت النهاية" : "End Time"}</th>
+              <th className="p-2">
+                {isArabic ? "عنوان النهاية" : "End Address"}
+              </th>
             </tr>
           </thead>
 
