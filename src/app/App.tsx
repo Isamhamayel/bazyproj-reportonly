@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { BarChart3, Clock3, Radio, Menu, X } from "lucide-react";
+import { BarChart3, Clock3, Radio, Menu, X, Timer } from "lucide-react";
 
 import { Reports } from "./pages/Reports";
 import TimelineReport from "./pages/TimelineReport";
 import { Fleet } from "./pages/Fleet";
 import IdleReport from "./pages/IdleReport";
 
-type Page = "reports" | "timeline" | "Idel" | "live";
+type Page = "reports" | "timeline" | "idle" | "live";
 
 export default function App() {
   const [page, setPage] = useState<Page>("reports");
@@ -19,14 +19,14 @@ export default function App() {
     ar: {
       reports: "التقارير",
       timeline: "الخط الزمني",
-      idelReport: "الخمول"
+      idleReport: "الخمول",
       live: "المباشر",
       lang: "Eng",
     },
     en: {
       reports: "Reports",
       timeline: "Timeline",
-      idelReport: "Idel"
+      idleReport: "Idle",
       live: "Live",
       lang: "عربي",
     },
@@ -49,9 +49,7 @@ export default function App() {
       dir={isArabic ? "rtl" : "ltr"}
       className="h-screen flex flex-col bg-gray-50 overflow-hidden"
     >
-      {/* Header */}
       <header className="shrink-0 bg-white border-b px-3 sm:px-4 py-2 sm:py-3 flex items-center gap-2 justify-between sm:justify-start">
-        {/* Mobile Menu Button */}
         <button
           type="button"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -61,46 +59,28 @@ export default function App() {
           {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
 
-        {/* Desktop Navigation */}
         <div className="hidden sm:flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => handleTabClick("reports")}
-            className={tabClass("reports")}
-          >
+          <button onClick={() => handleTabClick("reports")} className={tabClass("reports")}>
             <BarChart3 size={18} />
             {labels[lang].reports}
           </button>
 
-          <button
-            type="button"
-            onClick={() => handleTabClick("timeline")}
-            className={tabClass("timeline")}
-          >
+          <button onClick={() => handleTabClick("timeline")} className={tabClass("timeline")}>
             <Clock3 size={18} />
             {labels[lang].timeline}
           </button>
 
-          <button
-            type="button"
-            onClick={() => handleTabClick("idle")}
-            className={tabClass("idle")}
-          >
+          <button onClick={() => handleTabClick("idle")} className={tabClass("idle")}>
             <Timer size={18} />
-            {lang === "ar" ? "الخمول" : "Idle"}
+            {labels[lang].idleReport}
           </button>
 
-          <button
-            type="button"
-            onClick={() => handleTabClick("live")}
-            className={tabClass("live")}
-          >
+          <button onClick={() => handleTabClick("live")} className={tabClass("live")}>
             <Radio size={18} />
             {labels[lang].live}
           </button>
         </div>
 
-        {/* Language Button */}
         <button
           type="button"
           onClick={() => setLang(isArabic ? "en" : "ar")}
@@ -110,32 +90,24 @@ export default function App() {
         </button>
       </header>
 
-      {/* Mobile Navigation Menu */}
       {mobileMenuOpen && (
         <div className="sm:hidden bg-white border-b px-3 py-2 flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={() => handleTabClick("reports")}
-            className={tabClass("reports")}
-          >
+          <button onClick={() => handleTabClick("reports")} className={tabClass("reports")}>
             <BarChart3 size={18} />
             {labels[lang].reports}
           </button>
 
-          <button
-            type="button"
-            onClick={() => handleTabClick("timeline")}
-            className={tabClass("timeline")}
-          >
+          <button onClick={() => handleTabClick("timeline")} className={tabClass("timeline")}>
             <Clock3 size={18} />
             {labels[lang].timeline}
           </button>
 
-          <button
-            type="button"
-            onClick={() => handleTabClick("live")}
-            className={tabClass("live")}
-          >
+          <button onClick={() => handleTabClick("idle")} className={tabClass("idle")}>
+            <Timer size={18} />
+            {labels[lang].idleReport}
+          </button>
+
+          <button onClick={() => handleTabClick("live")} className={tabClass("live")}>
             <Radio size={18} />
             {labels[lang].live}
           </button>
@@ -150,6 +122,7 @@ export default function App() {
         <div className={page === "timeline" ? "block h-full" : "hidden"}>
           <TimelineReport lang={lang} />
         </div>
+
         <div className={page === "idle" ? "block h-full" : "hidden"}>
           <IdleReport lang={lang} />
         </div>
