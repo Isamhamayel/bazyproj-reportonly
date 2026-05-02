@@ -18,6 +18,11 @@ type IdleRow = {
 
 };
 
+type SortConfig = {
+  key: keyof IdleRow;
+  direction: "asc" | "desc";
+};
+
 function formatAmmanDateTime(value: string) {
   if (!value) return "";
 
@@ -103,6 +108,7 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
   const [rows, setRows] = useState<IdleRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
 
   async function generateReport() {
     if (!from || !to) {
@@ -113,6 +119,7 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
     setLoading(true);
     setMessage("");
     setRows([]);
+    setSortConfig(null);
 
     try {
       const fromISO = new Date(from).toISOString();
@@ -186,27 +193,83 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
       return;
     }
 
-    const exportRows = rows.map((row) => ({
-      Date: row.date,
-     "Vehicle Name": row.vehicleName,
-      "Duration (m)": row.durationMinutes,
-      "Start Time": row.startTime,
-      "Start Address": row.startAddress,
-      Map: row.map,
-      "End Time": row.endTime,
+    try {
+      const exportRows = rows.map((row) => ({
+        Date: row.date,
+        "Vehicle Name": row.vehicleName,
+        "Duration (m)": row.durationMinutes,
+        "Start Time": row.startTime,
+        "Start Address": row.startAddress,
+        Map: row.map,
+        "End Time": row.endTime,
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(exportRows);
+      const workbook = XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Idle Report");
+      XLSX.writeFile(
+        workbook,
+        `idle-report_${new Date().toISOString().split("T")[0]}.xlsx`
+      );
+
+      setMessage(isArabic ? "تم التصدير بنجاح" : "Export successful");
+    } catch (error) {
+      console.error("Export error:", error);
+      setMessage(
+        isArabic ? "حدث خطأ في التصدير" : "Error during export"
+      );
+    }
+  }
+
+  function handleSort(key: keyof IdleRow) {
+    let direction: "asc" | "desc" = "asc";
     
-    }));
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
+      direction = "desc";
+    }
+    
+    setSortConfig({ key, direction });
+    
+    const sorted = [...rows].sort((a, b) => {
+      const aValue = a[key];
+      const bValue = b[key];
+      
+      if (typeof aValue === "string") {
+        return direction === "asc" 
+          ? aValue.localeCompare(bValue as string)
+          : (bValue as string).localeCompare(aValue);
+      }
+      
+      if (typeof aValue === "number") {
+        return direction === "asc"
+          ? (aValue as number) - (bValue as number)
+          : (bValue as number) - (aValue as number);
+      }
+      
+      return 0;
+    });
+    
+    setRows(sorted);
+  }
 
-    const worksheet = XLSX.utils.json_to_sheet(exportRows);
-    const workbook = XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Idle Report");
-    XLSX.writeFile(
-      workbook,
-      `idle-report_${new Date().toISOString().split("T")[0]}.xlsx`
+  function SortableHeader({ label, sortKey }: { label: string; sortKey: keyof IdleRow }) {
+    const isActive = sortConfig?.key === sortKey;
+    const indicator = isActive 
+      ? sortConfig?.direction === "asc" 
+        ? " ↑" 
+        : " ↓"
+      : "";
+    
+    return (
+      <th
+        onClick={() => handleSort(sortKey)}
+        className="p-2 cursor-pointer hover:bg-gray-100 select-none font-semibold"
+        title={isArabic ? "اضغط للفرز" : "Click to sort"}
+      >
+        {label}{indicator}
+      </th>
     );
-
-    setMessage(isArabic ? "تم التصدير بنجاح" : "Export successful");
   }
 
   return (
@@ -265,7 +328,7 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
         <button
           onClick={exportExcel}
           disabled={!rows.length}
-          className="border rounded-lg px-4 py-2 disabled:opacity-60"
+          className="bg-green-600 text-white rounded-lg px-4 py-2 disabled:opacity-60 hover:bg-green-700"
         >
           Excel
         </button>
@@ -287,24 +350,20 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
         <table className="w-full text-sm">
           <thead className="bg-gray-50">
             <tr>
-              <th className="p-2">{isArabic ? "التاريخ" : "Date"}</th>
-              <th className="p-2">
-                {isArabic ? "اسم المركبة" : "Vehicle Name"}
-              </th>
-              <th className="p-2">{isArabic ? "المدة (د)" : "Duration (m)"}</th>
-              <th className="p-2">{isArabic ? "وقت البداية" : "Start Time"}</th>
-              <th className="p-2">
-                {isArabic ? "عنوان البداية" : "Start Address"}
-              </th>
+              <SortableHeader label={isArabic ? "التاريخ" : "Date"} sortKey="date" />
+              <SortableHeader label={isArabic ? "اسم المركبة" : "Vehicle Name"} sortKey="vehicleName" />
+              <SortableHeader label={isArabic ? "المدة (د)" : "Duration (m)"} sortKey="durationMinutes" />
+              <SortableHeader label={isArabic ? "وقت البداية" : "Start Time"} sortKey="startTime" />
+              <SortableHeader label={isArabic ? "عنوان البداية" : "Start Address"} sortKey="startAddress" />
               <th className="p-2">{isArabic ? "الخريطة" : "Map"}</th>
-              <th className="p-2">{isArabic ? "وقت النهاية" : "End Time"}</th>
+              <SortableHeader label={isArabic ? "وقت النهاية" : "End Time"} sortKey="endTime" />
           
             </tr>
           </thead>
 
           <tbody>
             {rows.map((row, index) => (
-              <tr key={index} className="border-t">
+              <tr key={index} className="border-t hover:bg-gray-50">
                 <td className="p-2">{row.date}</td>
                 <td className="p-2">{row.vehicleName}</td>
                 <td className="p-2">{row.durationMinutes}</td>
@@ -316,7 +375,7 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
                       href={row.map}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-blue-600"
+                      className="text-blue-600 hover:text-blue-800"
                     >
                       📍
                     </a>
