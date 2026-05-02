@@ -304,9 +304,7 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
               </th>
               <th className="p-2">{isArabic ? "الخريطة" : "Map"}</th>
               <th className="p-2">{isArabic ? "وقت النهاية" : "End Time"}</th>
-              <th className="p-2">
-                {isArabic ? "عنوان النهاية" : "End Address"}
-              </th>
+          
             </tr>
           </thead>
 
