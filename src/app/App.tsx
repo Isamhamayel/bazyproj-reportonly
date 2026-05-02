@@ -4,8 +4,9 @@ import { BarChart3, Clock3, Radio, Menu, X } from "lucide-react";
 import { Reports } from "./pages/Reports";
 import TimelineReport from "./pages/TimelineReport";
 import { Fleet } from "./pages/Fleet";
+import IdleReport from "./pages/IdleReport";
 
-type Page = "reports" | "timeline" | "live";
+type Page = "reports" | "timeline" | "Idel" | "live";
 
 export default function App() {
   const [page, setPage] = useState<Page>("reports");
@@ -18,12 +19,14 @@ export default function App() {
     ar: {
       reports: "التقارير",
       timeline: "الخط الزمني",
+      idelReport: "الخمول"
       live: "المباشر",
       lang: "Eng",
     },
     en: {
       reports: "Reports",
       timeline: "Timeline",
+      idelReport: "Idel"
       live: "Live",
       lang: "عربي",
     },
@@ -76,6 +79,15 @@ export default function App() {
           >
             <Clock3 size={18} />
             {labels[lang].timeline}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleTabClick("idle")}
+            className={tabClass("idle")}
+          >
+            <Timer size={18} />
+            {lang === "ar" ? "الخمول" : "Idle"}
           </button>
 
           <button
@@ -137,6 +149,9 @@ export default function App() {
 
         <div className={page === "timeline" ? "block h-full" : "hidden"}>
           <TimelineReport lang={lang} />
+        </div>
+        <div className={page === "idle" ? "block h-full" : "hidden"}>
+          <IdleReport lang={lang} />
         </div>
 
         <div className={page === "live" ? "block h-full" : "hidden"}>
