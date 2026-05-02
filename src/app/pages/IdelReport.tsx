@@ -384,10 +384,6 @@ export default function TimelineIdleReport({ lang = "ar" }: { lang?: "ar" | "en"
 
   return (
     <div dir={isArabic ? "rtl" : "ltr"} className="p-4 space-y-4">
-      <h1 className="text-xl font-bold">
-        {isArabic ? "تقرير الخط الزمني للخمول" : "Idle Timeline Report"}
-      </h1>
-
       <div className="flex flex-wrap gap-3 items-end bg-white p-4 rounded-xl border">
         <label className="space-y-1">
           <div>{isArabic ? "من" : "From"}</div>
