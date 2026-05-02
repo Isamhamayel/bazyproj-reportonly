@@ -9,7 +9,6 @@ type Device = {
 
 type IdleRow = {
   date: string;
-  vehicleId: number;
   vehicleName: string;
   durationMinutes: number;
   startTime: string;
@@ -148,7 +147,6 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
 
             reportRows.push({
               date: trip.startTime ? formatDateOnly(trip.startTime) : "",
-              vehicleId: vehicle.id,
               vehicleName: vehicle.name || "Unnamed",
               durationMinutes: Math.round((trip.duration || 0) / 60000),
               startTime: trip.startTime ? formatAmmanDateTime(trip.startTime) : "",
@@ -190,8 +188,7 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
 
     const exportRows = rows.map((row) => ({
       Date: row.date,
-      "Vehicle ID": row.vehicleId,
-      "Vehicle Name": row.vehicleName,
+     "Vehicle Name": row.vehicleName,
       "Duration (m)": row.durationMinutes,
       "Start Time": row.startTime,
       "Start Address": row.startAddress,
@@ -292,9 +289,6 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
             <tr>
               <th className="p-2">{isArabic ? "التاريخ" : "Date"}</th>
               <th className="p-2">
-                {isArabic ? "معرف المركبة" : "Vehicle ID"}
-              </th>
-              <th className="p-2">
                 {isArabic ? "اسم المركبة" : "Vehicle Name"}
               </th>
               <th className="p-2">{isArabic ? "المدة (د)" : "Duration (m)"}</th>
@@ -312,7 +306,6 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
             {rows.map((row, index) => (
               <tr key={index} className="border-t">
                 <td className="p-2">{row.date}</td>
-                <td className="p-2">{row.vehicleId}</td>
                 <td className="p-2">{row.vehicleName}</td>
                 <td className="p-2">{row.durationMinutes}</td>
                 <td className="p-2">{row.startTime}</td>
