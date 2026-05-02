@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import { api } from "../services/api";
 
@@ -15,13 +15,34 @@ type IdleRow = {
   startAddress: string;
   map: string;
   endTime: string;
-
 };
 
 type SortConfig = {
   key: keyof IdleRow;
   direction: "asc" | "desc";
 };
+
+function toDateTimeLocalValue(date: Date) {
+  const pad = (value: number) => String(value).padStart(2, "0");
+
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+    `T${pad(date.getHours())}:${pad(date.getMinutes())}`
+  );
+}
+
+function getTodayDateRange() {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date();
+  end.setHours(23, 59, 0, 0);
+
+  return {
+    from: toDateTimeLocalValue(start),
+    to: toDateTimeLocalValue(end),
+  };
+}
 
 function formatAmmanDateTime(value: string) {
   if (!value) return "";
@@ -102,8 +123,9 @@ const fetchIdleTrips = async (
 export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
   const isArabic = lang === "ar";
 
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
+  const defaultDateRange = useMemo(() => getTodayDateRange(), []);
+  const [from, setFrom] = useState(defaultDateRange.from);
+  const [to, setTo] = useState(defaultDateRange.to);
   const [minIdleMinutes, setMinIdleMinutes] = useState(10);
   const [rows, setRows] = useState<IdleRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -163,7 +185,6 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
                   ? `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`
                   : "",
               endTime: trip.endTime ? formatAmmanDateTime(trip.endTime) : "",
-            
             });
           }
         }
@@ -204,13 +225,36 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
         "End Time": row.endTime,
       }));
 
-      const worksheet = XLSX.utils.json_to_sheet(exportRows);
-      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(exportRows, {
+        header: [
+          "Date",
+          "Vehicle Name",
+          "Duration (m)",
+          "Start Time",
+          "Start Address",
+          "Map",
+          "End Time",
+        ],
+      });
 
+      worksheet["!cols"] = [
+        { wch: 12 },
+        { wch: 25 },
+        { wch: 14 },
+        { wch: 18 },
+        { wch: 45 },
+        { wch: 55 },
+        { wch: 18 },
+      ];
+      worksheet["!autofilter"] = { ref: worksheet["!ref"] || "A1:G1" };
+
+      const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Idle Report");
+
       XLSX.writeFile(
         workbook,
-        `idle-report_${new Date().toISOString().split("T")[0]}.xlsx`
+        `idle-report_${formatDateOnly(new Date().toISOString())}.xlsx`,
+        { bookType: "xlsx" }
       );
 
       setMessage(isArabic ? "تم التصدير بنجاح" : "Export successful");
@@ -312,6 +356,7 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
         </label>
 
         <button
+          type="button"
           onClick={generateReport}
           disabled={loading}
           className="bg-blue-600 text-white rounded-lg px-4 py-2 disabled:opacity-60"
@@ -326,6 +371,7 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
         </button>
 
         <button
+          type="button"
           onClick={exportExcel}
           disabled={!rows.length}
           className="bg-green-600 text-white rounded-lg px-4 py-2 disabled:opacity-60 hover:bg-green-700"
@@ -355,7 +401,7 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
               <SortableHeader label={isArabic ? "المدة (د)" : "Duration (m)"} sortKey="durationMinutes" />
               <SortableHeader label={isArabic ? "وقت البداية" : "Start Time"} sortKey="startTime" />
               <SortableHeader label={isArabic ? "عنوان البداية" : "Start Address"} sortKey="startAddress" />
-              <th className="p-2">{isArabic ? "الخريطة" : "Map"}</th>
+              <SortableHeader label={isArabic ? "الخريطة" : "Map"} sortKey="map" />
               <SortableHeader label={isArabic ? "وقت النهاية" : "End Time"} sortKey="endTime" />
           
             </tr>
@@ -390,7 +436,7 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
 
             {!rows.length && !loading && (
               <tr>
-                <td colSpan={9} className="p-4 text-center text-gray-500">
+                <td colSpan={7} className="p-4 text-center text-gray-500">
                   {isArabic ? "لا توجد بيانات" : "No data"}
                 </td>
               </tr>
