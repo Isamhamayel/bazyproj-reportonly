@@ -357,14 +357,24 @@ export default function TimelineIdleReport({ lang = "ar" }: { lang?: "ar" | "en"
     }));
   }
 
-  function SortableHeader({ label, sortKey }: { label: string; sortKey: keyof TimelineRow }) {
+  function SortableHeader({
+    label,
+    sortKey,
+    sticky = false,
+  }: {
+    label: string;
+    sortKey: keyof TimelineRow;
+    sticky?: boolean;
+  }) {
     const isActive = sortConfig?.key === sortKey;
     const indicator = isActive ? (sortConfig.direction === "asc" ? " ↑" : " ↓") : "";
 
     return (
       <th
         onClick={() => handleSort(sortKey)}
-        className="p-2 cursor-pointer hover:bg-gray-100 select-none font-semibold whitespace-nowrap"
+        className={`p-2 cursor-pointer hover:bg-gray-100 select-none font-semibold whitespace-nowrap sticky top-0 z-20 bg-gray-50 ${
+          sticky ? (isArabic ? "right-0 z-30 shadow-[-2px_0_4px_rgba(0,0,0,0.08)]" : "left-0 z-30 shadow-[2px_0_4px_rgba(0,0,0,0.08)]") : ""
+        }`}
         title={isArabic ? "اضغط للفرز" : "Click to sort"}
       >
         {label}{indicator}
@@ -514,11 +524,11 @@ export default function TimelineIdleReport({ lang = "ar" }: { lang?: "ar" | "en"
         </div>
       )}
 
-      <div className="bg-white rounded-xl border overflow-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50">
+      <div className="bg-white rounded-xl border overflow-auto max-h-[70vh]">
+        <table className="w-full text-sm border-separate border-spacing-0">
+          <thead>
             <tr>
-              <SortableHeader label={isArabic ? "التاريخ" : "Date"} sortKey="date" />
+              <SortableHeader label={isArabic ? "التاريخ" : "Date"} sortKey="date" sticky />
               <SortableHeader label={isArabic ? "المركبة" : "Vehicle"} sortKey="vehicleName" />
               <SortableHeader label={isArabic ? "وقت البداية" : "Start Time"} sortKey="startTime" />
               <SortableHeader label={isArabic ? "وقت النهاية" : "End Time"} sortKey="endTime" />
@@ -530,8 +540,16 @@ export default function TimelineIdleReport({ lang = "ar" }: { lang?: "ar" | "en"
 
           <tbody>
             {sortedRows.map((row, index) => (
-              <tr key={`${row.vehicleName}-${row.startTime}-${index}`} className="border-t hover:bg-gray-50">
-                <td className="p-2 whitespace-nowrap">{row.date}</td>
+              <tr key={`${row.vehicleName}-${row.startTime}-${index}`} className="border-t odd:bg-white even:bg-gray-50 hover:bg-blue-50">
+                <td
+                  className={`p-2 whitespace-nowrap sticky z-10 ${
+                    isArabic
+                      ? "right-0 shadow-[-2px_0_4px_rgba(0,0,0,0.06)]"
+                      : "left-0 shadow-[2px_0_4px_rgba(0,0,0,0.06)]"
+                  } ${index % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
+                >
+                  {row.date}
+                </td>
                 <td className="p-2 whitespace-nowrap">{row.vehicleName}</td>
                 <td className="p-2 whitespace-nowrap">{row.startTime}</td>
                 <td className="p-2 whitespace-nowrap">{row.endTime}</td>
