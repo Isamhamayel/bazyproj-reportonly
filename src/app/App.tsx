@@ -4,7 +4,7 @@ import { BarChart3, Clock3, Radio, Menu, X, Timer } from "lucide-react";
 import { Reports } from "./pages/Reports";
 import TimelineReport from "./pages/TimelineReport";
 import { Fleet } from "./pages/Fleet";
-import IdleReport from "./pages/IdleReport";
+import IdleReport from "./pages/IdelReport";
 
 type Page = "reports" | "timeline" | "Idle" | "live";
 
