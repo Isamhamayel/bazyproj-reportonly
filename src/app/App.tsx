@@ -6,7 +6,7 @@ import TimelineReport from "./pages/TimelineReport";
 import { Fleet } from "./pages/Fleet";
 import IdleReport from "./pages/IdleReport";
 
-type Page = "reports" | "timeline" | "idle" | "live";
+type Page = "reports" | "timeline" | "Idle" | "live";
 
 export default function App() {
   const [page, setPage] = useState<Page>("reports");
