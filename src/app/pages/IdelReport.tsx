@@ -16,7 +16,7 @@ type IdleRow = {
   startAddress: string;
   map: string;
   endTime: string;
-  endAddress: string;
+
 };
 
 function formatAmmanDateTime(value: string) {
@@ -158,7 +158,7 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
                   ? `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`
                   : "",
               endTime: trip.endTime ? formatAmmanDateTime(trip.endTime) : "",
-              endAddress: trip.endAddress || "",
+            
             });
           }
         }
@@ -197,7 +197,7 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
       "Start Address": row.startAddress,
       Map: row.map,
       "End Time": row.endTime,
-      "End Address": row.endAddress,
+    
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(exportRows);
@@ -334,7 +334,7 @@ export default function IdleReport({ lang = "ar" }: { lang?: "ar" | "en" }) {
                   )}
                 </td>
                 <td className="p-2">{row.endTime}</td>
-                <td className="p-2">{row.endAddress}</td>
+            
               </tr>
             ))}
 
