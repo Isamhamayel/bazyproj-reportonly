@@ -179,6 +179,7 @@ export default function TimelineIdleReport({ lang = "ar" }: { lang?: "ar" | "en"
   const [loading, setLoading] = useState(false);
   const [loadingVehicles, setLoadingVehicles] = useState(false);
   const [message, setMessage] = useState("");
+  const [vehicleSearch, setVehicleSearch] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig | null>({
     key: "startTime",
     direction: "asc",
@@ -211,6 +212,11 @@ export default function TimelineIdleReport({ lang = "ar" }: { lang?: "ar" | "en"
 
   const sortedRows = useMemo(() => sortRows(rows, sortConfig), [rows, sortConfig]);
 
+  const filteredVehicles = vehicles.filter((vehicle) =>
+  (vehicle.name || "")
+    .toLowerCase()
+    .includes(vehicleSearch.toLowerCase())
+);
   async function generateReport() {
     if (!from || !to) {
       setMessage(isArabic ? "الرجاء تحديد التاريخ" : "Please select dates");
