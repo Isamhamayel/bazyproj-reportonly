@@ -331,6 +331,7 @@ export default function TimelineReport() {
   const [gfRadius, setGfRadius] = useState(100);
   const [gfColor, setGfColor] = useState("#0b57d0");
   const [deviceDropdownOpen, setDeviceDropdownOpen] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   const filteredDevices = devices.filter((d) => d.name.toLowerCase().includes(deviceSearch.toLowerCase()));
 
@@ -369,6 +370,10 @@ export default function TimelineReport() {
     setMessage("");
     setCheckedRows({});
     setCheckedText("");
+
+    if (window.innerWidth < 768) {
+      setShowFilters(false);
+    }
 
     try {
       const fromIso = toUtcIsoFromLocal(fromDate, fromTime);
@@ -459,8 +464,27 @@ export default function TimelineReport() {
   return (
     <div dir="rtl" className="min-h-screen bg-slate-50 pb-28 text-slate-900 md:pb-6">
       <div className="mx-auto max-w-[1500px] space-y-4 p-3 md:p-5">
-        <div className="rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur md:sticky md:top-0 md:z-20 md:p-5">
+        <div className="md:hidden">
+          <button
+            type="button"
+            onClick={() => setShowFilters((current) => !current)}
+            className="flex w-full items-center justify-between rounded-3xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-900 shadow-sm"
+          >
+            <span>خيارات التقرير</span>
+            <span className="text-sm text-slate-500">{showFilters ? "إخفاء ▲" : "عرض ▼"}</span>
+          </button>
+        </div>
+
+        <div
+          className={`rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur md:sticky md:top-0 md:z-20 md:p-5 ${
+            showFilters ? "block" : "hidden"
+          } md:block`}
+        >
           <div className="mb-4 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 className="text-xl font-black text-slate-950 md:text-2xl">تقرير خط الزمن</h1>
+              <p className="text-sm text-slate-500">عرض احترافي للحركة، التوقف، الإيقاف، والتشويش</p>
+            </div>
             {loading && <div className="rounded-full bg-blue-50 px-3 py-1 text-sm font-bold text-blue-700">جاري التنفيذ...</div>}
           </div>
 
