@@ -185,6 +185,7 @@ export default function TimelineIdleReport({ lang = "ar" }: { lang?: "ar" | "en"
     key: "startTime",
     direction: "asc",
   });
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -240,6 +241,10 @@ export default function TimelineIdleReport({ lang = "ar" }: { lang?: "ar" | "en"
     setLoading(true);
     setMessage("");
     setRows([]);
+
+    if (window.innerWidth < 768) {
+      setShowFilters(false);
+    }
 
     try {
       const fromISO = new Date(from).toISOString();
@@ -406,7 +411,24 @@ export default function TimelineIdleReport({ lang = "ar" }: { lang?: "ar" | "en"
   return (
     <div dir={isArabic ? "rtl" : "ltr"} className="min-h-screen bg-[#f6f7fb] p-3 md:p-4 text-[#172033]">
       <div className="mx-auto max-w-[1500px] space-y-3 md:space-y-4 pb-20 md:pb-4">
-        <div className="rounded-2xl bg-white p-3 md:p-4 shadow-sm border border-gray-100 sticky top-0 z-40">
+        <div className="md:hidden">
+          <button
+            type="button"
+            onClick={() => setShowFilters((current) => !current)}
+            className="w-full rounded-2xl bg-white border border-gray-200 px-4 py-3 shadow-sm flex items-center justify-between font-semibold text-[#172033]"
+          >
+            <span>{isArabic ? "خيارات التقرير" : "Report options"}</span>
+            <span className="text-sm text-gray-500">
+              {showFilters ? (isArabic ? "إخفاء ▲" : "Hide ▲") : (isArabic ? "عرض ▼" : "Show ▼")}
+            </span>
+          </button>
+        </div>
+
+        <div
+          className={`rounded-2xl bg-white p-3 md:p-4 shadow-sm border border-gray-100 md:sticky md:top-0 md:z-40 ${
+            showFilters ? "block" : "hidden"
+          } md:block`}
+        >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-end">
             <label className="space-y-1">
               <div className="text-xs font-semibold text-gray-600">{isArabic ? "من" : "From"}</div>
