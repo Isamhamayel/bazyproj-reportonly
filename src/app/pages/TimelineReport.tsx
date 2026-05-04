@@ -461,10 +461,6 @@ export default function TimelineReport() {
       <div className="mx-auto max-w-[1500px] space-y-4 p-3 md:p-5">
         <div className="rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-sm backdrop-blur md:sticky md:top-0 md:z-20 md:p-5">
           <div className="mb-4 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 className="text-xl font-black text-slate-950 md:text-2xl">تقرير خط الزمن</h1>
-              <p className="text-sm text-slate-500">عرض احترافي للحركة، التوقف، الإيقاف، والتشويش</p>
-            </div>
             {loading && <div className="rounded-full bg-blue-50 px-3 py-1 text-sm font-bold text-blue-700">جاري التنفيذ...</div>}
           </div>
 
