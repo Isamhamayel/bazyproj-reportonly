@@ -524,8 +524,7 @@ export default function TimelineIdleReport({ lang = "ar" }: { lang?: "ar" | "en"
         <table className="w-full text-sm border-separate border-spacing-0">
           <thead>
             <tr>
-              <SortableHeader label={isArabic ? "التاريخ" : "Date"} sortKey="date" sticky />
-              <SortableHeader label={isArabic ? "المركبة" : "Vehicle"} sortKey="vehicleName" />
+              <SortableHeader label={isArabic ? "المركبة" : "Vehicle"} sortKey="vehicleName" sticky />
               <SortableHeader label={isArabic ? "وقت البداية" : "Start Time"} sortKey="startTime" />
               <SortableHeader label={isArabic ? "وقت النهاية" : "End Time"} sortKey="endTime" />
               <SortableHeader label={isArabic ? "المدة (د)" : "Duration (m)"} sortKey="durationMinutes" />
@@ -538,15 +537,14 @@ export default function TimelineIdleReport({ lang = "ar" }: { lang?: "ar" | "en"
             {sortedRows.map((row, index) => (
               <tr key={`${row.vehicleName}-${row.startTime}-${index}`} className="border-t odd:bg-white even:bg-gray-50 hover:bg-blue-50">
                 <td
-                  className={`p-2 whitespace-nowrap sticky z-10 ${
+                  className={`p-2 whitespace-nowrap sticky z-10 font-semibold ${
                     isArabic
                       ? "right-0 shadow-[-2px_0_4px_rgba(0,0,0,0.06)]"
                       : "left-0 shadow-[2px_0_4px_rgba(0,0,0,0.06)]"
                   } ${index % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
                 >
-                  {row.date}
+                  {row.vehicleName}
                 </td>
-                <td className="p-2 whitespace-nowrap">{row.vehicleName}</td>
                 <td className="p-2 whitespace-nowrap">{row.startTime}</td>
                 <td className="p-2 whitespace-nowrap">{row.endTime}</td>
                 <td className="p-2 text-center">{row.durationMinutes}</td>
@@ -570,7 +568,7 @@ export default function TimelineIdleReport({ lang = "ar" }: { lang?: "ar" | "en"
 
             {!sortedRows.length && !loading && (
               <tr>
-                <td colSpan={7} className="p-4 text-center text-gray-500">
+                <td colSpan={6} className="p-4 text-center text-gray-500">
                   {isArabic ? "لا توجد بيانات" : "No data"}
                 </td>
               </tr>
