@@ -361,10 +361,12 @@ export default function TimelineIdleReport({ lang = "ar" }: { lang?: "ar" | "en"
     label,
     sortKey,
     sticky = false,
+    className = "",
   }: {
     label: string;
     sortKey: keyof TimelineRow;
     sticky?: boolean;
+    className?: string;
   }) {
     const isActive = sortConfig?.key === sortKey;
     const indicator = isActive ? (sortConfig.direction === "asc" ? " ↑" : " ↓") : "";
@@ -372,9 +374,13 @@ export default function TimelineIdleReport({ lang = "ar" }: { lang?: "ar" | "en"
     return (
       <th
         onClick={() => handleSort(sortKey)}
-        className={`p-2 cursor-pointer hover:bg-gray-100 select-none font-semibold whitespace-nowrap sticky top-0 z-20 bg-gray-50 ${
-          sticky ? (isArabic ? "right-0 z-30 shadow-[-2px_0_4px_rgba(0,0,0,0.08)]" : "left-0 z-30 shadow-[2px_0_4px_rgba(0,0,0,0.08)]") : ""
-        }`}
+        className={`sticky top-0 z-20 bg-gray-50 p-2 text-xs font-semibold uppercase tracking-wide text-gray-600 cursor-pointer hover:bg-gray-100 select-none whitespace-nowrap ${
+          sticky
+            ? isArabic
+              ? "right-0 z-30 shadow-[-2px_0_4px_rgba(0,0,0,0.08)]"
+              : "left-0 z-30 shadow-[2px_0_4px_rgba(0,0,0,0.08)]"
+            : ""
+        } ${className}`}
         title={isArabic ? "اضغط للفرز" : "Click to sort"}
       >
         {label}{indicator}
@@ -382,199 +388,324 @@ export default function TimelineIdleReport({ lang = "ar" }: { lang?: "ar" | "en"
     );
   }
 
+  function MobileMeta({
+    label,
+    value,
+  }: {
+    label: string;
+    value: string | number;
+  }) {
+    return (
+      <div className="rounded-xl bg-gray-50 px-3 py-2">
+        <div className="text-[11px] font-semibold text-gray-500">{label}</div>
+        <div className="mt-0.5 text-sm font-semibold text-gray-800 break-words">{value || "-"}</div>
+      </div>
+    );
+  }
+
   return (
-    <div dir={isArabic ? "rtl" : "ltr"} className="p-4 space-y-4">
-      <div className="flex flex-wrap gap-3 items-end bg-white p-4 rounded-xl border">
-        <label className="space-y-1">
-          <div>{isArabic ? "من" : "From"}</div>
-          <input
-            type="datetime-local"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-            className="border rounded-lg px-3 py-2"
-          />
-        </label>
+    <div dir={isArabic ? "rtl" : "ltr"} className="min-h-screen bg-[#f6f7fb] p-3 md:p-4 text-[#172033]">
+      <div className="mx-auto max-w-[1500px] space-y-3 md:space-y-4 pb-20 md:pb-4">
+        <div className="rounded-2xl bg-white p-3 md:p-4 shadow-sm border border-gray-100 sticky top-0 z-40">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-end">
+            <label className="space-y-1">
+              <div className="text-xs font-semibold text-gray-600">{isArabic ? "من" : "From"}</div>
+              <input
+                type="datetime-local"
+                value={from}
+                onChange={(e) => setFrom(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </label>
 
-        <label className="space-y-1">
-          <div>{isArabic ? "إلى" : "To"}</div>
-          <input
-            type="datetime-local"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            className="border rounded-lg px-3 py-2"
-          />
-        </label>
+            <label className="space-y-1">
+              <div className="text-xs font-semibold text-gray-600">{isArabic ? "إلى" : "To"}</div>
+              <input
+                type="datetime-local"
+                value={to}
+                onChange={(e) => setTo(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </label>
 
-        <label className="space-y-1 relative">
-          <div>{isArabic ? "المركبة" : "Vehicle"}</div>
-          <input
-            type="text"
-            value={deviceDropdownOpen ? deviceSearch : selectedVehicleName}
-            onChange={(e) => {
-              setDeviceSearch(e.target.value);
-              setSelectedVehicleId("all");
-              setDeviceDropdownOpen(true);
-            }}
-            onFocus={() => {
-              setDeviceSearch("");
-              setDeviceDropdownOpen(true);
-            }}
-            disabled={loadingVehicles || loading}
-            placeholder={
-              loadingVehicles
-                ? isArabic
-                  ? "جاري تحميل المركبات..."
-                  : "Loading vehicles..."
-                : isArabic
-                ? "ابحث عن مركبة..."
-                : "Search vehicle..."
-            }
-            className="border rounded-lg px-3 py-2 min-w-64 bg-white"
-          />
-
-          {deviceDropdownOpen && !loadingVehicles && !loading && (
-            <div className="absolute z-20 mt-1 max-h-64 min-w-64 overflow-auto rounded-lg border bg-white shadow-lg">
-              <button
-                type="button"
-                className="block w-full px-3 py-2 text-start hover:bg-gray-100"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
+            <label className="space-y-1 relative sm:col-span-2 lg:col-span-1 lg:w-72">
+              <div className="text-xs font-semibold text-gray-600">{isArabic ? "المركبة" : "Vehicle"}</div>
+              <input
+                type="text"
+                value={deviceDropdownOpen ? deviceSearch : selectedVehicleName}
+                onChange={(e) => {
+                  setDeviceSearch(e.target.value);
                   setSelectedVehicleId("all");
-                  setDeviceSearch("");
-                  setDeviceDropdownOpen(false);
+                  setDeviceDropdownOpen(true);
                 }}
-              >
-                {isArabic ? "كل المركبات" : "All vehicles"}
-              </button>
+                onFocus={() => {
+                  setDeviceSearch("");
+                  setDeviceDropdownOpen(true);
+                }}
+                disabled={loadingVehicles || loading}
+                placeholder={
+                  loadingVehicles
+                    ? isArabic
+                      ? "جاري تحميل المركبات..."
+                      : "Loading vehicles..."
+                    : isArabic
+                    ? "ابحث عن مركبة..."
+                    : "Search vehicle..."
+                }
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-50"
+              />
 
-              {filteredVehicles.map((vehicle) => (
-                <button
-                  key={vehicle.id}
-                  type="button"
-                  className="block w-full px-3 py-2 text-start hover:bg-gray-100"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    setSelectedVehicleId(String(vehicle.id));
-                    setDeviceSearch(vehicle.name || `Vehicle ${vehicle.id}`);
-                    setDeviceDropdownOpen(false);
-                  }}
-                >
-                  {vehicle.name || `Vehicle ${vehicle.id}`}
-                </button>
-              ))}
+              {deviceDropdownOpen && !loadingVehicles && !loading && (
+                <div className="absolute z-50 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-gray-200 bg-white shadow-lg">
+                  <button
+                    type="button"
+                    className="block w-full px-3 py-2 text-start text-sm hover:bg-gray-100"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      setSelectedVehicleId("all");
+                      setDeviceSearch("");
+                      setDeviceDropdownOpen(false);
+                    }}
+                  >
+                    {isArabic ? "كل المركبات" : "All vehicles"}
+                  </button>
 
-              {!filteredVehicles.length && (
-                <div className="px-3 py-2 text-gray-500">
-                  {isArabic ? "لا توجد مركبات مطابقة" : "No matching vehicles"}
+                  {filteredVehicles.map((vehicle) => (
+                    <button
+                      key={vehicle.id}
+                      type="button"
+                      className="block w-full px-3 py-2 text-start text-sm hover:bg-gray-100"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        setSelectedVehicleId(String(vehicle.id));
+                        setDeviceSearch(vehicle.name || `Vehicle ${vehicle.id}`);
+                        setDeviceDropdownOpen(false);
+                      }}
+                    >
+                      {vehicle.name || `Vehicle ${vehicle.id}`}
+                    </button>
+                  ))}
+
+                  {!filteredVehicles.length && (
+                    <div className="px-3 py-2 text-sm text-gray-500">
+                      {isArabic ? "لا توجد مركبات مطابقة" : "No matching vehicles"}
+                    </div>
+                  )}
                 </div>
               )}
+            </label>
+
+            <label className="space-y-1 lg:w-40">
+              <div className="text-xs font-semibold text-gray-600">{isArabic ? "أقل مدة خمول بالدقائق" : "Min idle minutes"}</div>
+              <input
+                type="number"
+                min={0}
+                value={minIdleMinutes}
+                onChange={(e) => setMinIdleMinutes(Number(e.target.value))}
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </label>
+
+            <div className="hidden md:flex gap-2 lg:ms-auto">
+              <button
+                type="button"
+                onClick={generateReport}
+                disabled={loading || loadingVehicles}
+                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-60 hover:bg-blue-700"
+              >
+                {loading
+                  ? isArabic
+                    ? "جاري التحميل..."
+                    : "Loading..."
+                  : isArabic
+                  ? "تشغيل التقرير"
+                  : "Run Report"}
+              </button>
+
+              <button
+                type="button"
+                onClick={exportExcel}
+                disabled={!sortedRows.length}
+                className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-60 hover:bg-green-700"
+              >
+                Excel
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-600">
+            <span className="rounded-full bg-gray-100 px-3 py-1 font-semibold">
+              {isArabic ? "المركبة" : "Vehicle"}: {selectedVehicleName}
+            </span>
+            <span className="rounded-full bg-gray-100 px-3 py-1 font-semibold">
+              {isArabic ? "السجلات" : "Records"}: {sortedRows.length}
+            </span>
+            <span className="rounded-full bg-gray-100 px-3 py-1 font-semibold">
+              {isArabic ? "أقل خمول" : "Min idle"}: {minIdleMinutes} {isArabic ? "د" : "m"}
+            </span>
+          </div>
+        </div>
+
+        {message && (
+          <div
+            className={`rounded-xl border p-3 text-sm font-semibold ${
+              message.includes("خطأ") || message.toLowerCase().includes("error")
+                ? "border-red-100 bg-red-50 text-red-700"
+                : "border-blue-100 bg-blue-50 text-blue-700"
+            }`}
+          >
+            {message}
+          </div>
+        )}
+
+        {/* Mobile professional card view */}
+        <div className="md:hidden space-y-3">
+          {sortedRows.map((row, index) => (
+            <div key={`${row.vehicleName}-${row.startTime}-mobile-${index}`} className="rounded-2xl border border-gray-100 bg-white p-3 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] font-semibold text-gray-500">{isArabic ? "المركبة" : "Vehicle"}</div>
+                  <div className="truncate text-base font-bold text-gray-900" title={row.vehicleName}>
+                    {row.vehicleName}
+                  </div>
+                </div>
+                <div className="shrink-0 rounded-full bg-amber-50 px-3 py-1 text-sm font-bold text-amber-700">
+                  {row.durationMinutes} {isArabic ? "د" : "m"}
+                </div>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <MobileMeta label={isArabic ? "البداية" : "Start"} value={row.startTime} />
+                <MobileMeta label={isArabic ? "النهاية" : "End"} value={row.endTime} />
+              </div>
+
+              <div className="mt-2 rounded-xl bg-gray-50 px-3 py-2">
+                <div className="text-[11px] font-semibold text-gray-500">{isArabic ? "عنوان البداية" : "Start Address"}</div>
+                <div className="mt-0.5 line-clamp-2 text-sm font-medium text-gray-800">
+                  {row.startAddress || "-"}
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <div className="text-xs font-semibold text-gray-500">#{index + 1} · {row.date}</div>
+                {row.map ? (
+                  <a
+                    href={row.map}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-xl bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm"
+                  >
+                    {isArabic ? "عرض الخريطة 📍" : "Map 📍"}
+                  </a>
+                ) : (
+                  <span className="text-xs text-gray-400">{isArabic ? "لا توجد خريطة" : "No map"}</span>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {!sortedRows.length && !loading && (
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-8 text-center text-gray-500">
+              {isArabic ? "لا توجد بيانات" : "No data"}
             </div>
           )}
-        </label>
+        </div>
 
-        <label className="space-y-1">
-          <div>{isArabic ? "أقل مدة خمول بالدقائق" : "Min idle minutes"}</div>
-          <input
-            type="number"
-            min={0}
-            value={minIdleMinutes}
-            onChange={(e) => setMinIdleMinutes(Number(e.target.value))}
-            className="border rounded-lg px-3 py-2 w-36"
-          />
-        </label>
+        {/* Desktop / tablet table view */}
+        <div className="hidden md:block rounded-2xl bg-white shadow-sm border border-gray-100 overflow-hidden">
+          <div className="overflow-auto max-h-[70vh]">
+            <table className="w-full table-fixed text-sm border-separate border-spacing-0">
+              <thead>
+                <tr>
+                  <SortableHeader
+                    label={isArabic ? "المركبة" : "Vehicle"}
+                    sortKey="vehicleName"
+                    sticky
+                    className="w-[150px] lg:w-[190px]"
+                  />
+                  <SortableHeader label={isArabic ? "وقت البداية" : "Start Time"} sortKey="startTime" className="w-[150px]" />
+                  <SortableHeader label={isArabic ? "وقت النهاية" : "End Time"} sortKey="endTime" className="w-[150px]" />
+                  <SortableHeader label={isArabic ? "المدة (د)" : "Duration (m)"} sortKey="durationMinutes" className="w-[95px]" />
+                  <SortableHeader label={isArabic ? "عنوان البداية" : "Start Address"} sortKey="startAddress" className="w-[360px]" />
+                  <SortableHeader label={isArabic ? "الخريطة" : "Map"} sortKey="map" className="w-[80px]" />
+                </tr>
+              </thead>
 
-        <button
-          type="button"
-          onClick={generateReport}
-          disabled={loading || loadingVehicles}
-          className="bg-blue-600 text-white rounded-lg px-4 py-2 disabled:opacity-60"
-        >
-          {loading
-            ? isArabic
-              ? "جاري التحميل..."
-              : "Loading..."
-            : isArabic
-            ? "تشغيل التقرير"
-            : "Run Report"}
-        </button>
+              <tbody>
+                {sortedRows.map((row, index) => (
+                  <tr key={`${row.vehicleName}-${row.startTime}-${index}`} className="border-t odd:bg-white even:bg-gray-50 hover:bg-blue-50">
+                    <td
+                      className={`sticky z-10 p-2 text-xs lg:text-sm font-semibold ${
+                        isArabic
+                          ? "right-0 shadow-[-2px_0_4px_rgba(0,0,0,0.06)]"
+                          : "left-0 shadow-[2px_0_4px_rgba(0,0,0,0.06)]"
+                      } ${index % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
+                      title={row.vehicleName}
+                    >
+                      <div className="truncate">{row.vehicleName}</div>
+                    </td>
+                    <td className="p-2 whitespace-nowrap text-center">{row.startTime}</td>
+                    <td className="p-2 whitespace-nowrap text-center">{row.endTime}</td>
+                    <td className="p-2 text-center font-semibold">{row.durationMinutes}</td>
+                    <td className="p-2 align-top">
+                      <div className="line-clamp-2" title={row.startAddress}>{row.startAddress}</div>
+                    </td>
+                    <td className="p-2 text-center">
+                      {row.map ? (
+                        <a
+                          href={row.map}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100"
+                        >
+                          📍
+                        </a>
+                      ) : (
+                        ""
+                      )}
+                    </td>
+                  </tr>
+                ))}
 
-        <button
-          type="button"
-          onClick={exportExcel}
-          disabled={!sortedRows.length}
-          className="bg-green-600 text-white rounded-lg px-4 py-2 disabled:opacity-60 hover:bg-green-700"
-        >
-          Excel
-        </button>
+                {!sortedRows.length && !loading && (
+                  <tr>
+                    <td colSpan={6} className="p-6 text-center text-gray-500">
+                      {isArabic ? "لا توجد بيانات" : "No data"}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
-      {message && (
-        <div
-          className={`p-3 rounded-lg text-sm ${
-            message.includes("خطأ") || message.toLowerCase().includes("error")
-              ? "bg-red-50 text-red-700"
-              : "bg-blue-50 text-blue-700"
-          }`}
-        >
-          {message}
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white/95 p-2 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] backdrop-blur md:hidden">
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={generateReport}
+            disabled={loading || loadingVehicles}
+            className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm disabled:opacity-60"
+          >
+            {loading
+              ? isArabic
+                ? "جاري التحميل..."
+                : "Loading..."
+              : isArabic
+              ? "تشغيل التقرير"
+              : "Run Report"}
+          </button>
+
+          <button
+            type="button"
+            onClick={exportExcel}
+            disabled={!sortedRows.length}
+            className="rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white shadow-sm disabled:opacity-60"
+          >
+            Excel
+          </button>
         </div>
-      )}
-
-      <div className="bg-white rounded-xl border overflow-auto max-h-[70vh]">
-        <table className="w-full text-sm border-separate border-spacing-0">
-          <thead>
-            <tr>
-              <SortableHeader label={isArabic ? "المركبة" : "Vehicle"} sortKey="vehicleName" sticky />
-              <SortableHeader label={isArabic ? "وقت البداية" : "Start Time"} sortKey="startTime" />
-              <SortableHeader label={isArabic ? "وقت النهاية" : "End Time"} sortKey="endTime" />
-              <SortableHeader label={isArabic ? "المدة (د)" : "Duration (m)"} sortKey="durationMinutes" />
-              <SortableHeader label={isArabic ? "عنوان البداية" : "Start Address"} sortKey="startAddress" />
-              <SortableHeader label={isArabic ? "الخريطة" : "Map"} sortKey="map" />
-            </tr>
-          </thead>
-
-          <tbody>
-            {sortedRows.map((row, index) => (
-              <tr key={`${row.vehicleName}-${row.startTime}-${index}`} className="border-t odd:bg-white even:bg-gray-50 hover:bg-blue-50">
-                <td
-                  className={`p-2 whitespace-nowrap sticky z-10 font-semibold ${
-                    isArabic
-                      ? "right-0 shadow-[-2px_0_4px_rgba(0,0,0,0.06)]"
-                      : "left-0 shadow-[2px_0_4px_rgba(0,0,0,0.06)]"
-                  } ${index % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
-                >
-                  {row.vehicleName}
-                </td>
-                <td className="p-2 whitespace-nowrap">{row.startTime}</td>
-                <td className="p-2 whitespace-nowrap">{row.endTime}</td>
-                <td className="p-2 text-center">{row.durationMinutes}</td>
-                <td className="p-2 min-w-72">{row.startAddress}</td>
-                <td className="p-2 text-center">
-                  {row.map ? (
-                    <a
-                      href={row.map}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      📍
-                    </a>
-                  ) : (
-                    ""
-                  )}
-                </td>
-              </tr>
-            ))}
-
-            {!sortedRows.length && !loading && (
-              <tr>
-                <td colSpan={6} className="p-4 text-center text-gray-500">
-                  {isArabic ? "لا توجد بيانات" : "No data"}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
       </div>
     </div>
   );
