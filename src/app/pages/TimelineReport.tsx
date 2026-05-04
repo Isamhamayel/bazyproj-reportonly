@@ -141,11 +141,12 @@ function round2(n: number) {
 }
 
 function statusColor(status: string) {
-  if (status === "حركة") return "#dcfce7";
-  if (status === "توقف") return "#fef9c3";
-  if (status === "إيقاف") return "#f3f4f6";
-  if (status === "تشويش") return "#fee2e2";
-  return "#e5e7eb";
+  // Keep the exact original business colors
+  if (status === "حركة") return "#b8f5b8";
+  if (status === "توقف") return "#fffdf2";
+  if (status === "إيقاف") return "#f5f5f2";
+  if (status === "تشويش") return "#f4cccc";
+  return "#ddd";
 }
 
 function statusBadgeClass(status: string) {
@@ -589,10 +590,10 @@ export default function TimelineReport() {
               </div>
 
               <div className="mt-3 flex flex-wrap gap-2 text-sm font-semibold">
-                <span className="rounded-full bg-green-50 px-3 py-1 text-green-700">🟢 حركة</span>
-                <span className="rounded-full bg-yellow-50 px-3 py-1 text-yellow-700">🟡 توقف</span>
-                <span className="rounded-full bg-gray-100 px-3 py-1 text-gray-700">⚫️ إيقاف</span>
-                <span className="rounded-full bg-red-50 px-3 py-1 text-red-700">🔴 تشويش</span>
+                <span className="rounded-full border px-3 py-1" style={{ background: statusColor("حركة") }}>🟢 حركة</span>
+                <span className="rounded-full border px-3 py-1" style={{ background: statusColor("توقف") }}>🟡 توقف</span>
+                <span className="rounded-full border px-3 py-1" style={{ background: statusColor("إيقاف") }}>⚫️ إيقاف</span>
+                <span className="rounded-full border px-3 py-1" style={{ background: statusColor("تشويش") }}>🔴 تشويش</span>
               </div>
             </>
           )}
@@ -675,10 +676,10 @@ export default function TimelineReport() {
             <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center text-slate-500 shadow-sm">لا توجد بيانات.</div>
           ) : (
             report.blocks.map((b, i) => (
-              <div key={i} id={`timeline-row-${i}`} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div key={i} id={`timeline-row-${i}`} className="rounded-3xl border border-slate-200 p-4 shadow-sm" style={{ background: statusColor(b.status) }}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-black ${statusBadgeClass(b.status)}`}>
+                    <div className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/80 px-3 py-1 text-sm font-black text-slate-800">
                       <span>{b.icon}</span>
                       <span>{b.status}</span>
                     </div>
