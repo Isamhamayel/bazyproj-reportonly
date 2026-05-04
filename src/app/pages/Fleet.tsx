@@ -57,7 +57,7 @@ export function Fleet({ lang }: { lang: Lang }) {
   const [ignitionFilter, setIgnitionFilter] = useState<string>("all");
   const [excludedStatuses, setExcludedStatuses] = useState<Set<string>>(new Set()); // Track EXCLUDED statuses
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<"cards" | "table">("table");
+  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
   const [refreshInterval, setRefreshInterval] = useState<number>(30);
   const [isAutoRefresh, setIsAutoRefresh] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -65,6 +65,8 @@ export function Fleet({ lang }: { lang: Lang }) {
   const [sortBy, setSortBy] = useState<"name" | "speed" | "lastUpdate">("name");
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [tableMaximized, setTableMaximized] = useState(false);
+  const [showMobileOptions, setShowMobileOptions] = useState(false);
+  const [showMobileStats, setShowMobileStats] = useState(true);
 
   // Refs to preserve scroll position
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -389,10 +391,23 @@ export function Fleet({ lang }: { lang: Lang }) {
   const delayedCount = devices.filter((d) => d.isDelayed && !d.isDisconnected).length;
   const disconnectedCount = devices.filter((d) => d.isDisconnected).length;
  return (
-    <div dir={isRTL(lang) ? "rtl" : "ltr"}>
+    <div dir={isRTL(lang) ? "rtl" : "ltr"} className="min-h-screen bg-slate-50 p-2 md:p-0 pb-24 md:pb-0">
       {!tableMaximized && (
-       <Card>
-        <CardContent className="p-2">
+        <div className="mb-2 md:hidden">
+          <button
+            type="button"
+            onClick={() => setShowMobileOptions((current) => !current)}
+            className="flex w-full items-center justify-between rounded-2xl border bg-white px-4 py-3 font-semibold shadow-sm"
+          >
+            <span>Fleet options</span>
+            <span className="text-sm text-gray-500">{showMobileOptions ? "Hide ▲" : "Show ▼"}</span>
+          </button>
+        </div>
+      )}
+
+      {!tableMaximized && (
+       <Card className={`${showMobileOptions ? "block" : "hidden"} md:block md:sticky md:top-0 md:z-30`}>
+        <CardContent className="p-3 md:p-2">
           <div className="mb-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -405,7 +420,7 @@ export function Fleet({ lang }: { lang: Lang }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-8 gap-2 mb-1">
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-8 mb-1">
             <Select value={ignitionFilter} onValueChange={setIgnitionFilter}>
               <SelectTrigger className="w-full">
                 <div className="flex items-center gap-1 truncate">
@@ -569,7 +584,7 @@ export function Fleet({ lang }: { lang: Lang }) {
       )}
 
       {tableMaximized && (
-        <div className="flex items-center justify-between gap-2 rounded-xl border bg-white p-2 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 rounded-xl border bg-white p-2 shadow-sm">
           <div className="text-sm font-semibold">
             Devices ({filteredDevices.length} of {devices.length})
           </div>
@@ -590,7 +605,20 @@ export function Fleet({ lang }: { lang: Lang }) {
       )}
 
       {!tableMaximized && (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+        <div className="mb-2 md:hidden">
+          <button
+            type="button"
+            onClick={() => setShowMobileStats((current) => !current)}
+            className="flex w-full items-center justify-between rounded-2xl border bg-white px-4 py-3 font-semibold shadow-sm"
+          >
+            <span>Fleet summary</span>
+            <span className="text-sm text-gray-500">{showMobileStats ? "Hide ▲" : "Show ▼"}</span>
+          </button>
+        </div>
+      )}
+
+      {!tableMaximized && (
+      <div className={`${showMobileStats ? "grid" : "hidden"} grid-cols-2 gap-2 md:grid sm:grid-cols-3 lg:grid-cols-5`}>
         <Card
           className={`cursor-pointer transition-all hover:shadow-lg ${
             excludedStatuses.has("moving") ? "ring-2 ring-red-500 bg-red-50" : ""
@@ -706,7 +734,7 @@ export function Fleet({ lang }: { lang: Lang }) {
           </CardContent>
         </Card>
       ) : viewMode === "cards" ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
           {filteredDevices.map((device) => {
             const ignitionOn = device.positionData?.attributes.ignition === true;
             const moving = ignitionOn && (device.positionData?.speed ?? 0) > 0;
@@ -880,6 +908,27 @@ export function Fleet({ lang }: { lang: Lang }) {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {!tableMaximized && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-white/95 p-2 shadow-[0_-4px_16px_rgba(15,23,42,0.08)] backdrop-blur md:hidden">
+          <div className="grid grid-cols-3 gap-2">
+            <Button onClick={handleManualRefresh} variant="outline" className="h-10 text-xs">
+              <RefreshCw className="w-4 h-4 mr-1" />
+              Refresh
+            </Button>
+            <Button onClick={exportToExcel} variant="outline" className="h-10 text-xs">
+              <Download className="w-4 h-4 mr-1" />
+              Export
+            </Button>
+            <Button
+              onClick={() => setViewMode(viewMode === "cards" ? "table" : "cards")}
+              className="h-10 text-xs"
+            >
+              {viewMode === "cards" ? "Table" : "Cards"}
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );
