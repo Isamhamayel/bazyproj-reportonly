@@ -700,6 +700,7 @@ export function Reports() {
   const [eventTypeFilters, setEventTypeFilters] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("trips");
+  const [showMainFilters, setShowMainFilters] = useState(true);
 
   // Dynamic filter system
   interface DynamicFilter {
@@ -1670,7 +1671,107 @@ const filteredVisits = visits.filter((visit) => {
 }, [visits]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0 max-w-full overflow-x-hidden">
+      <style>{`
+        @media (max-width: 767px) {
+          .reports-tabs-list {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            height: auto !important;
+            width: 100%;
+            gap: 0.25rem;
+            padding: 0.25rem;
+          }
+
+          .reports-tabs-list [role=tab] {
+            width: 100%;
+            min-height: 2.5rem;
+            white-space: normal;
+            font-size: 0.75rem;
+            line-height: 1rem;
+          }
+
+          .reports-mobile-table {
+            overflow: visible !important;
+          }
+
+          .reports-mobile-table table,
+          .reports-mobile-table thead,
+          .reports-mobile-table tbody,
+          .reports-mobile-table th,
+          .reports-mobile-table td,
+          .reports-mobile-table tr {
+            display: block;
+            width: 100%;
+          }
+
+          .reports-mobile-table thead {
+            display: none;
+          }
+
+          .reports-mobile-table tbody {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+          }
+
+          .reports-mobile-table tr {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.875rem;
+            background: #ffffff !important;
+            padding: 0.75rem;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+          }
+
+          .reports-mobile-table td {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            border: 0 !important;
+            padding: 0.5rem 0 !important;
+            text-align: right;
+            word-break: break-word;
+          }
+
+          .reports-mobile-table td::before {
+            flex: 0 0 38%;
+            color: #64748b;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+          }
+
+          .reports-mobile-table td > * {
+            max-width: 62%;
+          }
+
+          .reports-table-trips td:nth-child(1)::before { content: "Device"; }
+          .reports-table-trips td:nth-child(2)::before { content: "Start Time"; }
+          .reports-table-trips td:nth-child(3)::before { content: "From"; }
+          .reports-table-trips td:nth-child(4)::before { content: "End Time"; }
+          .reports-table-trips td:nth-child(5)::before { content: "To"; }
+          .reports-table-trips td:nth-child(6)::before { content: "Distance"; }
+          .reports-table-trips td:nth-child(7)::before { content: "Duration"; }
+          .reports-table-trips td:nth-child(8)::before { content: "Max Speed"; }
+          .reports-table-trips td:nth-child(9)::before { content: "Map"; }
+
+          .reports-table-events td:nth-child(1)::before { content: "Device"; }
+          .reports-table-events td:nth-child(2)::before { content: "Event Type"; }
+          .reports-table-events td:nth-child(3)::before { content: "Event Time"; }
+          .reports-table-events td:nth-child(4)::before { content: "Speed"; }
+          .reports-table-events td:nth-child(5)::before { content: "Geofence"; }
+          .reports-table-events td:nth-child(6)::before { content: "Address"; }
+
+          .reports-table-visits td:nth-child(1)::before { content: "Device"; }
+          .reports-table-visits td:nth-child(2)::before { content: "Geofence"; }
+          .reports-table-visits td:nth-child(3)::before { content: "Enter Time"; }
+          .reports-table-visits td:nth-child(4)::before { content: "Exit Time"; }
+          .reports-table-visits td:nth-child(5)::before { content: "Duration"; }
+        }
+      `}</style>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -1683,8 +1784,27 @@ const filteredVisits = visits.filter((visit) => {
 
 
       {/* Filters */}
-      <Card>
-        <CardContent className="p-4 space-y-4">
+      <Card className="overflow-visible">
+        <CardHeader className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle className="text-base">Report Filters</CardTitle>
+            <div className="mt-1 text-xs text-gray-500">{selectedVehicleSummary} • {selectedDateLabel}</div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowMainFilters((prev) => !prev)}
+            className="w-full sm:w-auto"
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            {showMainFilters ? "Hide Filters" : "Show Filters"}
+          </Button>
+        </CardHeader>
+
+        {showMainFilters && (
+          <CardContent className="p-4 pt-0 space-y-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div ref={vehicleDropdownRef} className="relative w-full sm:w-[320px]">
               <button
@@ -1795,12 +1915,13 @@ const filteredVisits = visits.filter((visit) => {
               </div>
             </div>
           )}
-        </CardContent>
+          </CardContent>
+        )}
       </Card>
 
       {/* Reports Tabs */}
       <Tabs defaultValue="trips" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
+        <TabsList className="reports-tabs-list">
           <TabsTrigger value="trips">Trip Reports</TabsTrigger>
           <TabsTrigger value="events">Event Reports</TabsTrigger>
           <TabsTrigger value="visits">Geofence Visits</TabsTrigger>
@@ -1809,12 +1930,12 @@ const filteredVisits = visits.filter((visit) => {
 
         <TabsContent value="trips" className="space-y-4">
           <Card>
-           <CardHeader className="flex flex-row items-start justify-between">
+           <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
   <div>
     <CardTitle>Trip History</CardTitle>
   </div>
 
-  <div className="flex items-center gap-2">
+  <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
     <Button onClick={loadData} disabled={loading} variant="outline" size="sm">
       <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
       {loading ? 'Loading...' : 'Refresh'}
@@ -1835,7 +1956,7 @@ const filteredVisits = visits.filter((visit) => {
       Export
     </Button>
   </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
             <Card key="trip-card-distance">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
@@ -1894,41 +2015,37 @@ const filteredVisits = visits.filter((visit) => {
                   <p className="text-sm mt-2">Click "Refresh Data" to load trip reports</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="reports-mobile-table reports-table-trips overflow-x-auto">
                   <Table>
-                    <TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('device')}>
-  Device {tripSort.column === 'device' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
-</TableHead>
-
-<TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('startTime')}>
-  Start Time {tripSort.column === 'startTime' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
-</TableHead>
-
-<TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('from')}>
-  From {tripSort.column === 'from' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
-</TableHead>
-
-<TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('endTime')}>
-  End Time {tripSort.column === 'endTime' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
-</TableHead>
-
-<TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('to')}>
-  To {tripSort.column === 'to' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
-</TableHead>
-
-<TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('distance')}>
-  Distance {tripSort.column === 'distance' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
-</TableHead>
-
-<TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('duration')}>
-  Duration {tripSort.column === 'duration' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
-</TableHead>
-
-<TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('maxSpeed')}>
-  Max Speed {tripSort.column === 'maxSpeed' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
-</TableHead>
-
-<TableHead>Map</TableHead>
+                    <TableHeader>
+                      <TableRow key="trips-header">
+                        <TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('device')}>
+                          Device {tripSort.column === 'device' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
+                        </TableHead>
+                        <TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('startTime')}>
+                          Start Time {tripSort.column === 'startTime' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
+                        </TableHead>
+                        <TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('from')}>
+                          From {tripSort.column === 'from' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
+                        </TableHead>
+                        <TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('endTime')}>
+                          End Time {tripSort.column === 'endTime' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
+                        </TableHead>
+                        <TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('to')}>
+                          To {tripSort.column === 'to' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
+                        </TableHead>
+                        <TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('distance')}>
+                          Distance {tripSort.column === 'distance' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
+                        </TableHead>
+                        <TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('duration')}>
+                          Duration {tripSort.column === 'duration' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
+                        </TableHead>
+                        <TableHead className="cursor-pointer select-none" onClick={() => handleTripSort('maxSpeed')}>
+                          Max Speed {tripSort.column === 'maxSpeed' ? (tripSort.direction === 'asc' ? '↑' : '↓') : ''}
+                        </TableHead>
+                        <TableHead>Map</TableHead>
+                      </TableRow>
+                    </TableHeader>
                     <TableBody>
                       {sortedTrips.map((trip, index) => {
                         const startDateTime = convertToUTC3Split(trip.startTime);
@@ -1991,10 +2108,10 @@ const filteredVisits = visits.filter((visit) => {
         <TabsContent value="events" className="space-y-4">
           <Card>
            <CardHeader className="space-y-4">
-  <div className="flex flex-row items-start justify-between">
+  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
     <CardTitle>Event History</CardTitle>
 
-    <div className="flex items-center gap-2">
+    <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
       <Button onClick={loadData} disabled={loading} variant="outline" size="sm">
         <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
         {loading ? 'Loading...' : 'Refresh'}
@@ -2047,7 +2164,7 @@ const filteredVisits = visits.filter((visit) => {
                   <p className="text-sm mt-2">Click "Refresh Data" to load event reports</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="reports-mobile-table reports-table-events overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow key="events-header">
@@ -2072,7 +2189,7 @@ const filteredVisits = visits.filter((visit) => {
                               <div className="whitespace-normal">{event.deviceName}</div>
                             </TableCell>
                             <TableCell>
-                              <div className="flex items-center gap-2">
+                              <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                                 <div className={`p-1.5 rounded ${eventIcon.bg}`}>
                                   <EventIconComponent className={`w-4 h-4 ${eventIcon.color}`} />
                                 </div>
@@ -2110,7 +2227,7 @@ const filteredVisits = visits.filter((visit) => {
 
         <TabsContent value="visits" className="space-y-4">
           {topGeofenceVisits.length > 0 && (
-  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:grid-cols-5">
     {topGeofenceVisits.map((g, i) => (
       <Card key={`geo-top-${i}`} className="p-3">
         <div className="flex flex-col gap-1">
@@ -2127,10 +2244,10 @@ const filteredVisits = visits.filter((visit) => {
 )}
           <Card>
             <CardHeader className="space-y-4">
-  <div className="flex flex-row items-start justify-between">
+  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
     <CardTitle>Geofence Visits</CardTitle>
 
-    <div className="flex items-center gap-2">
+    <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
       <Button onClick={loadData} disabled={loading} variant="outline" size="sm">
         <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
         {loading ? 'Loading...' : 'Refresh'}
@@ -2231,7 +2348,7 @@ const filteredVisits = visits.filter((visit) => {
                   <p className="text-sm mt-2">Click "Refresh Data" to load geofence visit reports</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
+                <div className="reports-mobile-table reports-table-visits overflow-x-auto">
                   <Table>
                     <TableHeader>
   <TableRow key="visits-header">
@@ -2307,7 +2424,7 @@ const filteredVisits = visits.filter((visit) => {
 
         <TabsContent value="summary" className="space-y-4">
           <Card>
-            <CardHeader className="flex flex-row items-start justify-between">
+            <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
   <CardTitle>Summary Statistics</CardTitle>
 
   <Button onClick={loadData} disabled={loading} variant="outline" size="sm">
@@ -2364,7 +2481,7 @@ const filteredVisits = visits.filter((visit) => {
 
       {/* Trip Filters Dialog */}
       <Dialog open={showTripFilters} onOpenChange={setShowTripFilters}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[85vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Trip Filters</DialogTitle>
             <DialogDescription>
@@ -2378,12 +2495,12 @@ const filteredVisits = visits.filter((visit) => {
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Active Filters ({tripDynamicFilters.length})</Label>
                 {tripDynamicFilters.map((filter) => (
-                  <div key={filter.id} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                  <div key={filter.id} className="grid grid-cols-1 gap-2 rounded-lg bg-gray-50 p-3 sm:flex sm:items-center">
                     <Select 
                       value={filter.column} 
                       onValueChange={(value) => updateFilter('trip', filter.id, 'column', value)}
                     >
-                      <SelectTrigger className="w-[180px]">
+                      <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -2397,7 +2514,7 @@ const filteredVisits = visits.filter((visit) => {
                       value={filter.operator} 
                       onValueChange={(value) => updateFilter('trip', filter.id, 'operator', value)}
                     >
-                      <SelectTrigger className="w-[120px]">
+                      <SelectTrigger className="w-full sm:w-[120px]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -2454,7 +2571,7 @@ const filteredVisits = visits.filter((visit) => {
 
       {/* Event Filters Dialog */}
       <Dialog open={showEventFilters} onOpenChange={setShowEventFilters}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[85vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Event Filters</DialogTitle>
             <DialogDescription>
@@ -2468,12 +2585,12 @@ const filteredVisits = visits.filter((visit) => {
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Active Filters ({eventDynamicFilters.length})</Label>
                 {eventDynamicFilters.map((filter) => (
-                  <div key={filter.id} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                  <div key={filter.id} className="grid grid-cols-1 gap-2 rounded-lg bg-gray-50 p-3 sm:flex sm:items-center">
                     <Select 
                       value={filter.column} 
                       onValueChange={(value) => updateFilter('event', filter.id, 'column', value)}
                     >
-                      <SelectTrigger className="w-[180px]">
+                      <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -2487,7 +2604,7 @@ const filteredVisits = visits.filter((visit) => {
                       value={filter.operator} 
                       onValueChange={(value) => updateFilter('event', filter.id, 'operator', value)}
                     >
-                      <SelectTrigger className="w-[120px]">
+                      <SelectTrigger className="w-full sm:w-[120px]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -2544,7 +2661,7 @@ const filteredVisits = visits.filter((visit) => {
 
       {/* Visit Filters Dialog */}
       <Dialog open={showVisitFilters} onOpenChange={setShowVisitFilters}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[85vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Visit Filters</DialogTitle>
             <DialogDescription>
@@ -2558,12 +2675,12 @@ const filteredVisits = visits.filter((visit) => {
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Active Filters ({visitDynamicFilters.length})</Label>
                 {visitDynamicFilters.map((filter) => (
-                  <div key={filter.id} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                  <div key={filter.id} className="grid grid-cols-1 gap-2 rounded-lg bg-gray-50 p-3 sm:flex sm:items-center">
                     <Select 
                       value={filter.column} 
                       onValueChange={(value) => updateFilter('visit', filter.id, 'column', value)}
                     >
-                      <SelectTrigger className="w-[180px]">
+                      <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -2577,7 +2694,7 @@ const filteredVisits = visits.filter((visit) => {
                       value={filter.operator} 
                       onValueChange={(value) => updateFilter('visit', filter.id, 'operator', value)}
                     >
-                      <SelectTrigger className="w-[120px]">
+                      <SelectTrigger className="w-full sm:w-[120px]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -2634,15 +2751,15 @@ const filteredVisits = visits.filter((visit) => {
       {/* Trip Map Dialog */}
 {/* Trip Map Dialog */}
 <Dialog open={!!selectedTripForMap} onOpenChange={closeTripMapDialog}>
-  <DialogContent className="w-[95vw] max-w-7xl h-[95vh] p-0 overflow-hidden">
+  <DialogContent className="w-[96vw] max-w-7xl h-[92vh] sm:h-[95vh] p-0 overflow-hidden">
     <DialogHeader className="sr-only">
       <DialogTitle>Trip Playback</DialogTitle>
       <DialogDescription>Trip map playback dialog</DialogDescription>
     </DialogHeader>
 
-    <div className="flex h-full w-full bg-slate-100">
+    <div className="flex h-full w-full flex-col bg-slate-100 md:flex-row">
       {/* Left Side Info */}
-      <div className="w-[430px] min-w-[430px] border-r bg-white flex flex-col">
+      <div className="max-h-[45vh] w-full border-b bg-white flex flex-col md:max-h-none md:w-[430px] md:min-w-[430px] md:border-b-0 md:border-r">
         <div className="border-b px-4 py-4">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -2667,7 +2784,7 @@ const filteredVisits = visits.filter((visit) => {
           <div className="text-sm font-medium text-slate-900">Trip Summary</div>
 
           <div className="flex items-center justify-between rounded-xl border bg-white px-4 py-3 text-sm shadow-sm">
-            <div className="flex items-center gap-2">
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
               <Clock className="w-4 h-4 text-blue-500" />
               <span className="font-semibold text-slate-900">
                 {selectedTripForMap ? formatDuration(selectedTripForMap.duration) : "-"}
@@ -2676,7 +2793,7 @@ const filteredVisits = visits.filter((visit) => {
 
             <div className="h-5 w-px bg-slate-200" />
 
-            <div className="flex items-center gap-2">
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
               <MapPin className="w-4 h-4 text-green-500" />
               <span className="font-semibold text-slate-900">
                 {selectedTripForMap
@@ -2687,7 +2804,7 @@ const filteredVisits = visits.filter((visit) => {
 
             <div className="h-5 w-px bg-slate-200" />
 
-            <div className="flex items-center gap-2">
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
               <Gauge className="w-4 h-4 text-orange-500" />
               <span className="font-semibold text-slate-900">
                 {selectedTripForMap
@@ -2728,7 +2845,7 @@ const filteredVisits = visits.filter((visit) => {
 
             <div className="rounded-xl border bg-white px-3 py-3 shadow-sm">
               <div className="flex flex-wrap items-center gap-4 text-sm">
-                <div className="flex items-center gap-2">
+                <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                   <Gauge className="h-4 w-4 text-orange-500" />
                   <span className="font-semibold text-slate-900">
                     {tripPositions[selectedInfoIndex]?.speed != null
@@ -2739,7 +2856,7 @@ const filteredVisits = visits.filter((visit) => {
 
                 <div className="h-5 w-px bg-slate-200" />
 
-                <div className="flex items-center gap-2">
+                <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                   <Calendar className="h-4 w-4 text-blue-500" />
                   <span className="font-semibold text-slate-900">
                     {tripPositions[selectedInfoIndex]?.fixTime
@@ -2750,7 +2867,7 @@ const filteredVisits = visits.filter((visit) => {
 
                 <div className="h-5 w-px bg-slate-200" />
 
-                <div className="flex items-center gap-2">
+                <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                   <Clock className="h-4 w-4 text-purple-500" />
                   <span className="font-semibold text-slate-900">
                     {tripPositions[selectedInfoIndex]?.fixTime
@@ -2832,7 +2949,7 @@ const filteredVisits = visits.filter((visit) => {
       </div>
 
       {/* Right Side Map */}
-      <div className="relative flex-1">
+      <div className="relative min-h-[45vh] flex-1">
         {tripPositionsLoading ? (
           <div className="flex h-full items-center justify-center bg-slate-100">
             <div className="text-sm text-slate-500">Loading trip map...</div>
